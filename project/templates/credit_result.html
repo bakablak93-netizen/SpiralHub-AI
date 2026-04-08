@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Результат заявки — Микрокредит{% endblock %}
+{% block content %}
+
+<div class="credit-result-hero">
+  <h1 style="margin-top:0;">Заявка отправлена</h1>
+  <p class="credit-result-sub">Мы обработали данные скорингом (MVP) и сгенерировали AI-анализ. Это демо, не решение кредитной организации.</p>
+</div>
+
+{% set r = application.risk_level or 'medium' %}
+<div class="credit-result-card credit-result-card--risk-{{ r }}">
+  <div class="credit-result-grid">
+    <div>
+      <p class="credit-result-kicker">Риск</p>
+      <p class="credit-risk-pill credit-risk-pill--{{ r }}">
+        {% if r == 'low' %}Низкий{% elif r == 'high' %}Высокий{% else %}Средний{% endif %}
+      </p>
+      <p class="hint" style="margin:0.5rem 0 0;">Индикатор для демо; не равен банковскому классификатору.</p>
+    </div>
+    <div>
+      <p class="credit-result-kicker">Вероятность одобрения</p>
+      <p class="credit-prob-big">{{ application.approval_probability or '—' }}%</p>
+    </div>
+    <div>
+      <p class="credit-result-kicker">Рекомендация</p>
+      {% set dec = application.decision_recommendation or 'improve' %}
+      <p class="credit-decision credit-decision--{{ dec }}">
+        {% if dec == 'approve' %}
+          Одобрить (по модели)
+        {% else %}
+          Доработать заявку
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  {% if application.sustainable_business %}
+  <p class="credit-sustainable-badge" title="ESG / eco-бонус в формуле скоринга">
+    Устойчивый бизнес — eco / bio / ESG-акцент
+  </p>
+  {% endif %}
+
+  <dl class="credit-order-dl">
+    <dt>Заявитель</dt><dd>{{ application.applicant_name or '—' }}</dd>
+    <dt>Запрошено</dt><dd>{% if application.requested_amount %}{{ application.requested_amount | int }} ₽{% else %}—{% endif %}</dd>
+    <dt>Рекомендуемая сумма</dt><dd>{% if application.recommended_amount %}{{ application.recommended_amount | int }} ₽{% else %}—{% endif %}</dd>
+    <dt>Доход / мес.</dt><dd>{{ application.monthly_income | int }} ₽</dd>
+    <dt>Продаж (30 дн.)</dt><dd>{{ application.sales_count_30d }}</dd>
+    <dt>Стаж</dt><dd>{{ application.experience_months or '—' }} мес.</dd>
+    <dt>Категория</dt><dd>{{ application.business_category or '—' }}</dd>
+    <dt>Статус заявки</dt>
+    <dd>
+      {% set st = application.status or 'pending' %}
+      <span class="credit-status-badge credit-status-badge--{{ st }}">
+        {% if st == 'approved' %}Одобрено{% elif st == 'rejected' %}Отклонено{% else %}На рассмотрении{% endif %}
+      </span>
+    </dd>
+  </dl>
+</div>
+
+<section class="credit-ai-block">
+  <h2>Объяснение AI</h2>
+  <p class="credit-ai-summary">{{ application.ai_summary or 'Нет текста.' }}</p>
+  <div class="credit-ai-columns">
+    <div>
+      <h3>Как повысить шанс</h3>
+      <div class="credit-ai-tips">{{ application.ai_tips_improve or '—' }}</div>
+    </div>
+    <div>
+      <h3>Развитие бизнеса</h3>
+      <div class="credit-ai-tips">{{ application.ai_tips_grow or '—' }}</div>
+    </div>
+  </div>
+</section>
+
+<p class="hint" style="margin-top:1.5rem;">
+  <a href="{{ url_for('credit_history') }}">Вся история заявок</a>
+  · <a href="{{ url_for('credit') }}">Новая заявка</a>
+  · <a href="{{ url_for('profile') }}">Профиль</a>
+</p>
+{% endblock %}

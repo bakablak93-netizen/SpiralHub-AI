@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% from '_macros.html' import product_image %}
+{% block title %}Оформление — {{ product.title }}{% endblock %}
+{% block content %}
+<h1 style="margin-top:0;">Оформление заказа</h1>
+
+<div class="checkout-layout">
+  <section class="card-panel checkout-summary">
+    <h2 class="panel-title">Товар</h2>
+    <div class="checkout-product-row">
+      <a href="{{ url_for('product_detail', pid=product.id) }}" class="checkout-thumb">{{ product_image(product) }}</a>
+      <div>
+        <h3 style="margin:0 0 0.35rem;font-size:1.05rem;">
+          <a href="{{ url_for('product_detail', pid=product.id) }}">{{ product.title }}</a>
+          {% if product.is_eco or product.category == 'eco' %}<span class="tag-eco">Eco</span>{% endif %}
+        </h3>
+        <p class="meta" style="margin:0;">Категория: {{ product.category }}</p>
+        {% if seller %}
+          <p class="meta" style="margin:0.25rem 0 0;">
+            Продавец: <a href="{{ url_for('seller_public', sid=seller.id) }}">{{ seller.display_name or seller.email }}</a>
+          </p>
+        {% endif %}
+        <p class="checkout-unit-price">Цена за единицу: <strong>{{ product.price | round(2) }} ₽</strong></p>
+      </div>
+    </div>
+    <p class="hint" style="margin:0.75rem 0 0;">
+      Eco / ESG: {% if product.is_eco or product.category == 'eco' %}товар с eco-акцентом{% else %}стандартная карточка — уточняйте материалы у продавца{% endif %}.
+    </p>
+  </section>
+
+  <section class="card-panel checkout-ai">
+    <h2 class="panel-title">Спросить AI перед покупкой</h2>
+    <p class="hint" style="margin-top:0;">Краткий разбор: стоит ли покупать, насколько eco позиция, плюсы и минусы.</p>
+    <button type="button" class="btn btn-ghost btn-sm" id="btn-purchase-ai">Получить совет AI</button>
+    <div id="purchase-ai-out" class="purchase-ai-out" style="display:none;"></div>
+  </section>
+
+  <section class="card-panel checkout-form-panel">
+    <h2 class="panel-title">Данные для доставки</h2>
+    <form method="post" action="{{ url_for('checkout', product_id=product.id) }}" id="checkout-form">
+      <label for="qty">Количество</label>
+      <input type="number" id="qty" name="quantity" min="1" max="99" value="{{ quantity }}" required>
+
+      <label for="bn">Имя</label>
+      <input type="text" id="bn" name="buyer_name" required minlength="2" value="{{ current_user.display_name if current_user and current_user.display_name else '' }}" placeholder="Как к вам обращаться">
+
+      <label for="bp">Телефон</label>
+      <input type="text" id="bp" name="buyer_phone" required minlength="8" placeholder="+7 …">
+
+      <label for="ba">Адрес доставки</label>
+      <textarea id="ba" name="buyer_address" rows="3" required minlength="8" placeholder="Город, улица, дом, подъезд"></textarea>
+
+      <div class="checkout-total-line">
+        Итого к оплате (демо): <strong id="total-display">{{ ((product.price | float) * quantity) | round(2) }} ₽</strong>
+      </div>
+
+      <p class="hint">Оплата имитируется: после нажатия кнопки заказ сохранится со статусом <code>completed</code>.</p>
+
+      <button type="submit" class="btn btn-primary">Оформить заказ</button>
+    </form>
+  </section>
+</div>
+
+<p class="hint"><a href="{{ url_for('product_detail', pid=product.id) }}">← Назад к товару</a></p>
+
+<script>
+(function() {
+  const unit = {{ product.price | float }};
+  const qtyEl = document.getElementById('qty');
+  const totalEl = document.getElementById('total-display');
+  function upd() {
+    var q = parseInt(qtyEl.value, 10) || 1;
+    totalEl.textContent = (unit * q).toFixed(2) + ' ₽';
+  }
+  qtyEl.addEventListener('input', upd);
+
+  document.getElementById('btn-purchase-ai').addEventListener('click', async function() {
+    const box = document.getElementById('purchase-ai-out');
+    box.style.display = 'block';
+    box.innerHTML = '<p class="hint">Запрос к AI…</p>';
+    const r = await fetch('{{ url_for("api_purchase_advice") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ product_id: {{ product.id }} })
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      box.innerHTML = '<p class="hint">' + (j.error || 'Ошибка') + '</p>';
+      return;
+    }
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+    box.innerHTML =
+      '<div class="purchase-ai-block"><h4>Стоит ли покупать</h4><p>' + esc(j.worth_buying || '') + '</p></div>' +
+      '<div class="purchase-ai-block"><h4>Eco / ESG</h4><p>' + esc(j.eco_assessment || '') + '</p></div>' +
+      '<div class="purchase-ai-block"><h4>Плюсы</h4><p>' + esc(j.pros || '') + '</p></div>' +
+      '<div class="purchase-ai-block"><h4>Минусы</h4><p>' + esc(j.cons || '') + '</p></div>';
+  });
+})();
+</script>
+{% endblock %}

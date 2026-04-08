@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2d6a4f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>{% block title %}AI Craft Hub{% endblock %}</title>
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="wrap inner site-header__inner">
+      <a href="{{ url_for('index') }}" class="logo">AI <span>Craft Hub</span></a>
+      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Открыть меню">
+        <span class="nav-toggle__bar" aria-hidden="true"></span>
+        <span class="nav-toggle__bar" aria-hidden="true"></span>
+        <span class="nav-toggle__bar" aria-hidden="true"></span>
+      </button>
+      <nav id="main-nav" class="nav nav--main" aria-hidden="true">
+        <a href="{{ url_for('catalog') }}">Каталог</a>
+        <a href="{{ url_for('sellers_list') }}">Продавцы</a>
+        <a href="{{ url_for('chat') }}">AI-чат</a>
+        <a href="{{ url_for('credit') }}">Микрокредит</a>
+        {% if current_user %}
+          <a href="{{ url_for('credit_history') }}">Кредиты: история</a>
+          <a href="{{ url_for('favorites_products') }}">Избранное</a>
+          <a href="{{ url_for('profile') }}">Профиль</a>
+          {% if current_user.role == 'seller' %}
+            <a href="{{ url_for('add_product') }}">Новый товар</a>
+          {% endif %}
+          <a href="{{ url_for('logout') }}">Выйти</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Вход</a>
+          <a href="{{ url_for('register') }}">Регистрация</a>
+        {% endif %}
+        {% if demo_mode %}
+          <span class="badge-demo" title="Задайте OPENAI_API_KEY в .env для реального AI">AI демо</span>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="wrap">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flash-messages">
+            {% for cat, msg in messages %}
+              <li class="flash-{{ cat }}">{{ msg }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      AI Craft Hub — маркетплейс, AI и микрокредиты для ремесла и малого бизнеса.
+    </div>
+  </footer>
+
+  {% if request.endpoint != 'chat' %}
+  <a href="{{ url_for('chat') }}" class="fab-chat" aria-label="Открыть AI-чат">
+    <span class="fab-chat__icon" aria-hidden="true">💬</span>
+    <span class="fab-chat__text">AI</span>
+  </a>
+  {% endif %}
+
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+  <script>
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}').catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>

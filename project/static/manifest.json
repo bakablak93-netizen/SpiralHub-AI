@@ -1,0 +1,10 @@
+{
+  "name": "AI Craft Hub",
+  "short_name": "CraftHub",
+  "description": "Маркетплейс ремесленников, AI и микрокредиты",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f3ee",
+  "theme_color": "#2d6a4f",
+  "lang": "ru"
+}

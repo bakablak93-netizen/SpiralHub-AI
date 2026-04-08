@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from '_macros.html' import product_image %}
+{% block title %}Избранные товары — AI Craft Hub{% endblock %}
+{% block content %}
+<h1 style="margin-top:0;">Избранные товары</h1>
+<p class="hint">Товары без файла фото в списке не показываются.</p>
+
+<div class="grid storefront-grid">
+  {% for p in products %}
+    {% set seller = sellers_by_id.get(p.seller_id) %}
+    <article class="card storefront-product-card">
+      <a class="card-media-link" href="{{ url_for('product_detail', pid=p.id) }}">{{ product_image(p) }}</a>
+      <div class="card-body">
+        <h3 style="margin-top:0;">
+          <a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a>
+          {% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">Eco</span>{% endif %}
+        </h3>
+        <p class="meta">
+          {% if seller %}
+            <a href="{{ url_for('seller_public', sid=seller.id) }}">{{ seller.display_name or seller.email }}</a>
+          {% endif %}
+        </p>
+        <p class="price">{{ p.price | round(2) }} ₽</p>
+        <div class="storefront-card-actions">
+          <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">Подробнее</a>
+          <form method="post" action="{{ url_for('favorite_product') }}" style="display:inline;">
+            <input type="hidden" name="product_id" value="{{ p.id }}">
+            <input type="hidden" name="action" value="remove">
+            <input type="hidden" name="next" value="{{ url_for('favorites_products') }}">
+            <button type="submit" class="btn btn-ghost btn-sm">Убрать</button>
+          </form>
+        </div>
+      </div>
+    </article>
+  {% else %}
+    <p class="hint">Пока пусто. Добавляйте сердечком с <a href="{{ url_for('index') }}">главной</a> или из <a href="{{ url_for('catalog') }}">каталога</a>.</p>
+  {% endfor %}
+</div>
+{% endblock %}

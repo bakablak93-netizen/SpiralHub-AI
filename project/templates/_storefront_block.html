@@ -1,0 +1,123 @@
+{% from '_macros.html' import product_image %}
+{# Общий блок: AI-подбор, ESG %, фильтры, сетка товаров. Требует form_action (index или catalog). #}
+<section class="card-panel ai-product-panel" id="ai-pick">
+  <h2 class="panel-title">Подобрать товар с помощью AI</h2>
+  <p class="hint" style="margin-top:0;">Например: «подарок девушке», «eco товар для кухни», «что-то из дерева».</p>
+  <form method="post" action="{{ url_for('ai_recommend') }}" class="ai-seller-search__form">
+    <input type="hidden" name="source" value="{{ 'catalog' if request.path.rstrip('/').endswith('catalog') else 'index' }}">
+    <input type="text" name="query" class="ai-seller-search__input" placeholder="Что вы ищете?" maxlength="400" required>
+    <button type="submit" class="btn btn-primary">Подобрать</button>
+  </form>
+  {% if ai_mode and ai_explanation %}
+    <div class="ai-seller-banner" style="margin-top:1rem;">
+      <p style="margin:0 0 0.5rem;"><strong>Комментарий AI:</strong> {{ ai_explanation }}</p>
+      <a href="{{ form_action }}?clear_ai=1" class="btn btn-ghost btn-sm">Сбросить подбор</a>
+    </div>
+  {% endif %}
+</section>
+
+<p class="eco-share-line">
+  <span class="badge-eco-seller" style="font-size:0.7rem;">ESG</span>
+  Доля eco-товаров на этой выкладке: <strong>{{ eco_share }}%</strong>
+  <span class="hint">(флаг eco или категория eco)</span>
+</p>
+
+<nav class="category-scroll" aria-label="Быстрый выбор категории">
+  <a class="category-chip {% if not filter_category %}is-active{% endif %}"
+     href="{{ form_action }}{% if ai_mode %}?ai=1{% endif %}">Все</a>
+  {% for c in categories %}
+    <a class="category-chip {% if filter_category == c %}is-active{% endif %}"
+       href="{{ form_action }}?category={{ c }}{% if ai_mode %}&ai=1{% endif %}">{{ c }}</a>
+  {% endfor %}
+</nav>
+
+<button type="button" class="storefront-filters-toggle" aria-expanded="false" aria-controls="storefront-filters-panel">
+  <span class="storefront-filters-toggle__icon" aria-hidden="true"></span>
+  Фильтры и поиск
+</button>
+<div id="storefront-filters-panel" class="storefront-filters-panel">
+<form class="filters storefront-filters" method="get" action="{{ form_action }}" id="storefront-grid">
+  {% if ai_mode %}<input type="hidden" name="ai" value="1">{% endif %}
+  <div class="field">
+    <label for="sf_q">Поиск</label>
+    <input type="text" id="sf_q" name="q" value="{{ search_q }}" placeholder="Название или описание">
+  </div>
+  <div class="field">
+    <label for="sf_cat">Категория</label>
+    <select id="sf_cat" name="category">
+      <option value="">Все</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if filter_category == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="sf_min">Цена от (₽)</label>
+    <input type="number" id="sf_min" name="min_price" step="1" min="0" value="{{ min_price if min_price is not none else '' }}" placeholder="—">
+  </div>
+  <div class="field">
+    <label for="sf_max">Цена до (₽)</label>
+    <input type="number" id="sf_max" name="max_price" step="1" min="0" value="{{ max_price if max_price is not none else '' }}" placeholder="—">
+  </div>
+  <div class="field">
+    <label for="sf_sort">Сортировка</label>
+    <select id="sf_sort" name="sort">
+      <option value="new" {% if sort_key == 'new' %}selected{% endif %}>По новизне</option>
+      <option value="price_asc" {% if sort_key == 'price_asc' %}selected{% endif %}>Цена: сначала дешевле</option>
+      <option value="price_desc" {% if sort_key == 'price_desc' %}selected{% endif %}>Цена: сначала дороже</option>
+      <option value="popular" {% if sort_key == 'popular' %}selected{% endif %}>По популярности (демо)</option>
+    </select>
+  </div>
+  <div class="checkbox-row" style="margin-bottom:0;align-self:flex-end;padding-bottom:0.25rem;">
+    <input type="checkbox" id="sf_eco" name="eco" value="1" {% if eco_only %}checked{% endif %}>
+    <label for="sf_eco" style="margin:0;font-weight:500;">Только eco</label>
+  </div>
+  <button type="submit" class="btn btn-primary" style="align-self:flex-end;">Применить</button>
+</form>
+</div>
+
+<p class="hint storefront-count">Показано товаров: <strong>{{ products|length }}</strong> · только с фото файла</p>
+
+<div class="grid storefront-grid">
+  {% for p in products %}
+    {% set seller = sellers_by_id.get(p.seller_id) %}
+    <article class="card storefront-product-card">
+      <a class="card-media-link" href="{{ url_for('product_detail', pid=p.id) }}">{{ product_image(p) }}</a>
+      <div class="card-body">
+        <h3 style="margin-top:0;">
+          <a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a>
+          {% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">Eco</span>{% endif %}
+        </h3>
+        <p class="meta">
+          {{ p.category }}
+          {% if seller %}
+            · <a href="{{ url_for('seller_public', sid=seller.id) }}">{{ seller.display_name or seller.email }}</a>
+          {% endif %}
+        </p>
+        <p class="storefront-pop hint">Популярность (демо): ★ {{ popularity_by_id.get(p.id, 0) }}</p>
+        <p class="price">{{ p.price | round(2) }} ₽</p>
+        <div class="storefront-card-actions">
+          <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">Подробнее</a>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('checkout', product_id=p.id) }}">Купить</a>
+          {% if current_user %}
+            <form method="post" action="{{ url_for('favorite_product') }}" style="display:inline;">
+              <input type="hidden" name="product_id" value="{{ p.id }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}#storefront-grid">
+              {% if p.id in favorite_product_ids %}
+                <input type="hidden" name="action" value="remove">
+                <button type="submit" class="btn btn-ghost btn-sm">Убрать из избранного</button>
+              {% else %}
+                <input type="hidden" name="action" value="add">
+                <button type="submit" class="btn btn-ghost btn-sm">В избранное</button>
+              {% endif %}
+            </form>
+          {% else %}
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('login', next=request.full_path) }}">В избранное</a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  {% else %}
+    <p>Ничего не найдено — измените фильтры или <a href="{{ form_action }}">сбросьте их</a>.</p>
+  {% endfor %}
+</div>

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}AI Микрокредиты — AI Craft Hub{% endblock %}
+{% block content %}
+
+<section class="credit-hero">
+  <div class="credit-hero__text">
+    <h1 style="margin-top:0;">AI Микрокредиты для ремесла</h1>
+    <p class="credit-lead">
+      Финтех-сервис для самозанятых и мастеров: заявка онлайн, мгновенный скоринг (MVP) и
+      персональные советы от AI. Это <strong>не</strong> публичная оферта банка — демонстрационный продукт платформы.
+    </p>
+    <ul class="credit-benefits">
+      <li><span class="credit-benefits__icon">⚡</span> Решение за минуты: риск, вероятность одобрения, рекомендуемая сумма</li>
+      <li><span class="credit-benefits__icon">🌿</span> ESG: категории <strong>eco</strong> и <strong>bio</strong> получают бонус к скорингу</li>
+      <li><span class="credit-benefits__icon">🤖</span> OpenAI объясняет результат и подсказывает, как усилить заявку</li>
+    </ul>
+    <p class="hint" style="margin-bottom:0;">
+      Уже подавали? <a href="{{ url_for('credit_history') }}">История заявок</a>
+    </p>
+  </div>
+  <div class="credit-hero__card">
+    <h2 class="credit-sim-title">Симулятор платежа</h2>
+    <p class="hint" style="margin-top:0;">Аннуитет, ставка 21% годовых (условный пример для MVP).</p>
+    <label for="sim_amount">Сумма (₽)</label>
+    <input type="number" id="sim_amount" min="1000" step="1000" value="100000">
+    <label for="sim_months">Срок (мес.)</label>
+    <input type="number" id="sim_months" min="1" max="60" step="1" value="12">
+    <p class="credit-sim-result" id="sim_payment_out">Ежемесячный платёж: <strong>—</strong></p>
+  </div>
+</section>
+
+{% if example %}
+<div class="result-panel result-panel--muted">
+  <strong>Пример для демо:</strong>
+  <p class="hint" style="margin:0.5rem 0 0;">
+    {{ example.name }}, {{ example.amount | int }} ₽, доход {{ example.income | int }} ₽/мес,
+    продаж: {{ example.sales }}, стаж {{ example.experience_months }} мес., категория {{ example.category }}.
+  </p>
+</div>
+{% endif %}
+
+<div class="form-card form-card--credit">
+  <h2 style="margin-top:0;">Заявка</h2>
+  <form method="post" id="credit-form" class="credit-form-grid">
+    <div class="credit-form-col">
+      <label for="applicant_name">Имя заявителя</label>
+      <input type="text" id="applicant_name" name="applicant_name" required maxlength="120"
+        value="{{ request.form.get('applicant_name', '') }}"
+        placeholder="Как к вам обращаться">
+
+      <label for="requested_amount">Сумма кредита (₽)</label>
+      <input type="number" id="requested_amount" name="requested_amount" step="1000" min="1000" max="5000000" required
+        value="{{ request.form.get('requested_amount', '') }}">
+
+      <label for="monthly_income">Ежемесячный доход (₽)</label>
+      <input type="number" id="monthly_income" name="monthly_income" step="500" min="0" required
+        value="{{ request.form.get('monthly_income', '') }}">
+
+      <label for="sales_count_30d">Количество продаж (за 30 дней)</label>
+      <input type="number" id="sales_count_30d" name="sales_count_30d" step="1" min="0" required
+        value="{{ request.form.get('sales_count_30d', '') }}">
+    </div>
+    <div class="credit-form-col">
+      <label for="experience_months">Стаж бизнеса (месяцев)</label>
+      <input type="number" id="experience_months" name="experience_months" step="1" min="0" max="600" required
+        value="{{ request.form.get('experience_months', '') }}">
+
+      <label for="business_category">Категория бизнеса</label>
+      <select id="business_category" name="business_category" required>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if request.form.get('business_category', 'handmade') == c %}selected{% endif %}>
+            {% if c == 'eco' %}Эко / устойчивое{% elif c == 'handmade' %}Handmade{% elif c == 'agro' %}Агро{% else %}Bio{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+
+      <label for="business_description">Описание бизнеса</label>
+      <textarea id="business_description" name="business_description" required minlength="15" rows="5"
+        placeholder="Ниша, каналы продаж, планы, eco-практики…">{{ request.form.get('business_description', '') }}</textarea>
+
+      {% if example %}
+      <button type="button" class="btn btn-ghost btn-sm" id="fill-example">Заполнить примером</button>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary credit-submit">Подать заявку</button>
+    </div>
+  </form>
+</div>
+
+<p class="hint"><a href="{{ url_for('index') }}">← На главную</a></p>
+
+{% if example %}
+<script>
+(function() {
+  var ex = {{ example | tojson }};
+  document.getElementById('fill-example').addEventListener('click', function() {
+    document.getElementById('applicant_name').value = ex.name;
+    document.getElementById('requested_amount').value = Math.round(Number(ex.amount));
+    document.getElementById('monthly_income').value = Math.round(Number(ex.income));
+    document.getElementById('sales_count_30d').value = ex.sales;
+    document.getElementById('experience_months').value = ex.experience_months;
+    document.getElementById('business_category').value = ex.category;
+    document.getElementById('business_description').value = ex.desc;
+  });
+})();
+</script>
+{% endif %}
+
+<script>
+(function() {
+  var ANNUAL = 0.21;
+  function monthlyPayment(principal, months) {
+    if (principal <= 0 || months <= 0) return 0;
+    var r = ANNUAL / 12;
+    if (r === 0) return principal / months;
+    return principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
+  }
+  function fmt(n) {
+    return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(n) + ' ₽';
+  }
+  function updateSim() {
+    var p = parseFloat(document.getElementById('sim_amount').value) || 0;
+    var n = parseInt(document.getElementById('sim_months').value, 10) || 1;
+    var m = monthlyPayment(p, n);
+    document.getElementById('sim_payment_out').innerHTML =
+      'Ежемесячный платёж: <strong>' + fmt(m) + '</strong>';
+  }
+  ['sim_amount', 'sim_months'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', updateSim);
+  });
+  updateSim();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from '_macros.html' import product_image %}
+{% block title %}Заказ оформлен — AI Craft Hub{% endblock %}
+{% block content %}
+<div class="success-hero card-panel">
+  <h1 style="margin:0 0 0.5rem;">Заказ успешно оформлен</h1>
+  <p class="hint" style="margin:0;">Спасибо за покупку на AI Craft Hub. Это демо-режим: реальной оплаты не было.</p>
+</div>
+
+<section class="card-panel">
+  <h2 class="panel-title">Детали заказа #{{ order.id }}</h2>
+  <dl class="order-dl">
+    <dt>Товар</dt>
+    <dd><a href="{{ url_for('product_detail', pid=product.id) }}">{{ product.title }}</a></dd>
+    <dt>Количество</dt>
+    <dd>{{ order.quantity }}</dd>
+    <dt>Сумма</dt>
+    <dd><strong>{{ order.total_price | round(2) }} ₽</strong> (по {{ order.unit_price | round(2) }} ₽ / шт.)</dd>
+    <dt>Статус</dt>
+    <dd><span class="order-status order-status--ok">{{ order.status }}</span> — оплата прошла успешно (имитация)</dd>
+    <dt>Получатель</dt>
+    <dd>{{ order.buyer_name }}, {{ order.buyer_phone }}</dd>
+    <dt>Адрес</dt>
+    <dd>{{ order.buyer_address }}</dd>
+    {% if seller %}
+      <dt>Продавец</dt>
+      <dd><a href="{{ url_for('seller_public', sid=seller.id) }}">{{ seller.display_name or seller.email }}</a></dd>
+    {% endif %}
+  </dl>
+</section>
+
+{% if similar_products %}
+<section class="card-panel">
+  <h2 class="panel-title">Вам может понравиться</h2>
+  <p class="hint" style="margin-top:0;">Похожие товары в категории «{{ product.category }}».</p>
+  <div class="grid" style="margin-top:0.75rem;">
+    {% for sp in similar_products %}
+      {% set ss = similar_sellers.get(sp.seller_id) %}
+      <a class="card card-link" href="{{ url_for('product_detail', pid=sp.id) }}">
+        {{ product_image(sp) }}
+        <div class="card-body">
+          <h3 style="margin-top:0;font-size:1rem;">{{ sp.title }}</h3>
+          <p class="meta">{% if ss %}{{ ss.display_name or ss.email }}{% endif %}</p>
+          <p class="price">{{ sp.price | round(2) }} ₽</p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if eco_alternatives %}
+<section class="card-panel eco-alt-panel">
+  <h2 class="panel-title">Eco-альтернативы</h2>
+  <p class="hint" style="margin-top:0;">Рекомендации ESG: другие лоты с eco-меткой или категорией eco.</p>
+  <div class="grid" style="margin-top:0.75rem;">
+    {% for ep in eco_alternatives %}
+      {% set es = eco_alt_sellers.get(ep.seller_id) %}
+      <a class="card card-link" href="{{ url_for('product_detail', pid=ep.id) }}">
+        {{ product_image(ep) }}
+        <div class="card-body">
+          <h3 style="margin-top:0;font-size:1rem;">{{ ep.title }} <span class="tag-eco">Eco</span></h3>
+          <p class="meta">{% if es %}{{ es.display_name or es.email }}{% endif %}</p>
+          <p class="price">{{ ep.price | round(2) }} ₽</p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<p style="margin-top:1.5rem;">
+  <a class="btn btn-primary" href="{{ url_for('index') }}">На главную</a>
+  <a class="btn btn-ghost" href="{{ url_for('catalog') }}">В каталог</a>
+</p>
+{% endblock %}

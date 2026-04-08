@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% from '_macros.html' import product_image %}
+{% block title %}{{ seller.display_name or seller.email }} — продавец{% endblock %}
+
+{% block content %}
+<div class="seller-profile-hero">
+  <div class="seller-profile-hero__main">
+    <h1 style="margin:0 0 0.35rem;">{{ seller.display_name or seller.email }}</h1>
+    <p class="meta" style="margin:0;">{{ seller.email }}</p>
+    {% if eco_percent >= 35 %}
+      <p style="margin:0.5rem 0 0;"><span class="badge-eco-seller">Eco seller</span>
+        <span class="hint"> — {{ eco_percent }}% товаров с eco/ESG-акцентом</span>
+      </p>
+    {% else %}
+      <p class="hint" style="margin:0.5rem 0 0;">Eco-товаров на витрине: {{ eco_percent }}%</p>
+    {% endif %}
+  </div>
+  <div class="seller-profile-hero__actions">
+    {% if current_user and current_user.id != seller.id %}
+      <form method="post" action="{{ url_for('favorite_seller') }}">
+        <input type="hidden" name="seller_id" value="{{ seller.id }}">
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        {% if is_favorited %}
+          <input type="hidden" name="action" value="remove">
+          <button type="submit" class="btn btn-ghost">Убрать из избранного</button>
+        {% else %}
+          <input type="hidden" name="action" value="add">
+          <button type="submit" class="btn btn-primary">Добавить в избранное</button>
+        {% endif %}
+      </form>
+    {% elif not current_user %}
+      <a class="btn btn-primary" href="{{ url_for('login', next=request.full_path) }}">Войти — избранное</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if seller.seller_bio %}
+  <section class="card-panel seller-about">
+    <h2 class="panel-title">О мастерской</h2>
+    <p style="margin:0;">{{ seller.seller_bio }}</p>
+  </section>
+{% endif %}
+
+<section class="card-panel seller-stats-row">
+  <h2 class="panel-title">Витрина в цифрах <span class="hint">(часть — демо для MVP)</span></h2>
+  <div class="stat-row" style="margin-top:0.75rem;">
+    <div class="stat-tile">
+      <span class="stat-tile__val">{{ products|length }}</span>
+      <span class="stat-tile__lbl">товаров с фото</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-tile__val">{{ stats.sales_count }}</span>
+      <span class="stat-tile__lbl">продаж (оценка)</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-tile__val">{{ stats.estimated_revenue | round(0) | int }} ₽</span>
+      <span class="stat-tile__lbl">примерный доход</span>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-tile__val">{{ eco_percent }}%</span>
+      <span class="stat-tile__lbl">eco / ESG доля</span>
+    </div>
+  </div>
+</section>
+
+<section class="card-panel">
+  <h2 class="panel-title">Категории на витрине</h2>
+  {% if category_counts %}
+    <ul class="category-pills">
+      {% for cat, cnt in category_counts|dictsort %}
+        <li><span class="pill">{{ cat }}</span> <span class="hint">× {{ cnt }}</span></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="hint">Нет товаров с фото.</p>
+  {% endif %}
+</section>
+
+{% if current_user %}
+<section class="card-panel seller-ai-panel">
+  <h2 class="panel-title">AI-анализ продавца</h2>
+  <p class="hint" style="margin-top:0;">Сильные и слабые стороны витрины, советы покупателю и потенциал роста мастерской.</p>
+  <form method="post" action="{{ url_for('seller_ai_analyze', sid=seller.id) }}">
+    <button type="submit" class="btn btn-primary">Проанализировать продавца</button>
+  </form>
+  {% if analysis %}
+    <div class="seller-analysis-grid">
+      <div class="seller-analysis-block">
+        <h3>Сильные стороны</h3>
+        <div>{{ analysis.strengths | e | replace('\n', '<br>') | safe }}</div>
+      </div>
+      <div class="seller-analysis-block">
+        <h3>Слабые стороны</h3>
+        <div>{{ analysis.weaknesses | e | replace('\n', '<br>') | safe }}</div>
+      </div>
+      <div class="seller-analysis-block">
+        <h3>Рекомендации</h3>
+        <div>{{ analysis.recommendations | e | replace('\n', '<br>') | safe }}</div>
+      </div>
+      <div class="seller-analysis-block">
+        <h3>Потенциал роста</h3>
+        <div>{{ analysis.growth_potential | e | replace('\n', '<br>') | safe }}</div>
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% else %}
+<p class="hint"><a href="{{ url_for('login', next=request.full_path) }}">Войдите</a>, чтобы запустить AI-анализ витрины.</p>
+{% endif %}
+
+<h2 class="section-title">Товары</h2>
+<div class="grid">
+  {% for p in products %}
+    <a class="card card-link" href="{{ url_for('product_detail', pid=p.id) }}">
+      {{ product_image(p) }}
+      <div class="card-body">
+        <h3 style="margin-top:0;">{{ p.title }}{% if p.is_eco %} <span class="tag-eco">Eco</span>{% endif %}</h3>
+        <p class="meta">{{ p.category }}</p>
+        <p class="price">{{ p.price | round(2) }} ₽</p>
+      </div>
+    </a>
+  {% else %}
+    <p class="hint">У этого продавца пока нет товаров с фото в витрине.</p>
+  {% endfor %}
+</div>
+
+<p style="margin-top:2rem;"><a href="{{ url_for('sellers_list') }}">← Все продавцы</a></p>
+{% endblock %}

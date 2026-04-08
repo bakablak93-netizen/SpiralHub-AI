@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}История заявок — Микрокредит{% endblock %}
+{% block content %}
+
+<h1 style="margin-top:0;">История заявок на микрокредит</h1>
+<p class="hint">Все заявки, которые вы подали в этом аккаунте. Статусы выставляются автоматикой MVP.</p>
+
+{% if not applications %}
+<p>Пока нет заявок. <a href="{{ url_for('credit') }}">Подать заявку</a></p>
+{% else %}
+<div class="table-wrap">
+  <table class="data-table credit-history-table">
+    <thead>
+      <tr>
+        <th>Дата</th>
+        <th>Имя</th>
+        <th>Сумма</th>
+        <th>Риск</th>
+        <th>%</th>
+        <th>Статус</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in applications %}
+      <tr>
+        <td>{{ a.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>{{ a.applicant_name or '—' }}</td>
+        <td>{% if a.requested_amount %}{{ a.requested_amount | int }} ₽{% else %}—{% endif %}</td>
+        <td>
+          {% set rk = a.risk_level or 'medium' %}
+          <span class="risk-{{ rk }}">{{ a.risk_level or '—' }}</span>
+        </td>
+        <td>{{ a.approval_probability or '—' }}%</td>
+        <td>
+          {% set st = a.status or 'pending' %}
+          <span class="credit-status-badge credit-status-badge--{{ st }}">
+            {% if st == 'approved' %}Одобрено{% elif st == 'rejected' %}Отклонено{% else %}На рассмотрении{% endif %}
+          </span>
+        </td>
+        <td><a href="{{ url_for('credit_result', application_id=a.id) }}">Подробнее</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="{{ url_for('credit') }}">← Новая заявка</a></p>
+{% endblock %}

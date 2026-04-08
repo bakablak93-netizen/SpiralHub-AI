@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Профиль — AI Craft Hub{% endblock %}
+{% block content %}
+<div class="profile-hero">
+  <h1 style="margin:0 0 0.35rem;">Личный кабинет</h1>
+  <p class="hint" style="margin:0;">AI Craft Hub — товары, аналитика и микрокредиты для мастеров и самозанятых</p>
+</div>
+
+<div class="profile-grid">
+  {# --- Карточка пользователя --- #}
+  <section class="profile-card profile-card--user">
+    <h2 class="profile-card__title">Профиль</h2>
+    <dl class="profile-dl">
+      <dt>Имя</dt>
+      <dd>{{ current_user.display_name or '—' }}</dd>
+      <dt>Email</dt>
+      <dd>{{ current_user.email }}</dd>
+      <dt>Роль</dt>
+      <dd><span class="role-pill">{{ role_label }}</span></dd>
+      <dt>Регистрация</dt>
+      <dd>{{ current_user.created_at.strftime('%d.%m.%Y') if current_user.created_at else '—' }}</dd>
+    </dl>
+    <div class="profile-actions" style="margin-top:1rem;">
+      <a class="btn btn-primary btn-sm" href="{{ url_for('profile_edit') }}">Изменить профиль</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">Выйти</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('switch_account') }}">Сменить аккаунт</a>
+    </div>
+    <p class="hint" style="margin:0.75rem 0 0;">«Сменить аккаунт» завершит сессию и откроет вход.</p>
+  </section>
+
+  {# --- Статистика (для продавца; у покупателя — подсказка) --- #}
+  <section class="profile-card profile-card--stats">
+    <h2 class="profile-card__title">Статистика</h2>
+    {% if current_user.role == 'seller' and profile_stats %}
+      <div class="stat-row">
+        <div class="stat-tile">
+          <span class="stat-tile__val">{{ profile_stats.product_count }}</span>
+          <span class="stat-tile__lbl">товаров в кабинете</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__val">{{ profile_stats.sales_count }}</span>
+          <span class="stat-tile__lbl">продаж (оценка, MVP)</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__val">{{ profile_stats.estimated_revenue | round(0) | int }} ₽</span>
+          <span class="stat-tile__lbl">примерный доход (демо)</span>
+        </div>
+      </div>
+      <p class="hint" style="margin:0.75rem 0 0;">Цифры условные для демонстрации; позже можно подключить реальные заказы.</p>
+    {% else %}
+      <p class="hint" style="margin:0;">Статистика продаж доступна в роли продавца. Зарегистрируйтесь как продавец или смените роль в новом аккаунте.</p>
+    {% endif %}
+  </section>
+
+  {# --- ESG / eco --- #}
+  {% if current_user.role == 'seller' %}
+  <section class="profile-card profile-card--eco">
+    <h2 class="profile-card__title">ESG / Eco</h2>
+    <p style="margin:0 0 0.5rem;">
+      Доля eco-товаров: <strong>{{ eco_percent }}%</strong>
+      <span class="hint">({{ eco_count }} из {{ my_products|length }} с флагом eco или категорией eco)</span>
+    </p>
+    <p class="hint" style="margin:0;">Отмечайте экологичные позиции при <a href="{{ url_for('add_product') }}">добавлении</a> или <a href="{{ url_for('profile') }}#my-products">редактировании</a> товара.</p>
+  </section>
+  {% endif %}
+
+  {# --- AI рекомендации --- #}
+  <section class="profile-card profile-card--ai" id="ai-block">
+    <h2 class="profile-card__title">AI-рекомендации</h2>
+    <p class="hint" style="margin-top:0;">Советы по продажам, ценам и идеям новых SKU — по вашему текущему каталогу.</p>
+    <form method="post" action="{{ url_for('ai_advice') }}" style="margin-bottom:1rem;">
+      <button type="submit" class="btn btn-primary btn-sm">Получить совет от AI</button>
+    </form>
+    {% if ai_advice %}
+      <div class="ai-advice-cols">
+        <div class="ai-advice-block">
+          <h3 class="ai-advice-block__h">Продажи</h3>
+          <div class="ai-advice-block__body">{{ ai_advice.sales_tips | e | replace('\n', '<br>') | safe }}</div>
+        </div>
+        <div class="ai-advice-block">
+          <h3 class="ai-advice-block__h">Цены</h3>
+          <div class="ai-advice-block__body">{{ ai_advice.pricing_tips | e | replace('\n', '<br>') | safe }}</div>
+        </div>
+        <div class="ai-advice-block">
+          <h3 class="ai-advice-block__h">Новые товары</h3>
+          <div class="ai-advice-block__body">{{ ai_advice.new_product_ideas | e | replace('\n', '<br>') | safe }}</div>
+        </div>
+      </div>
+    {% else %}
+      <p class="hint" style="margin:0;">Нажмите кнопку выше — текст появится здесь (сессия, до выхода из аккаунта).</p>
+    {% endif %}
+  </section>
+
+  {# --- Микрокредит --- #}
+  <section class="profile-card profile-card--credit">
+    <h2 class="profile-card__title">Микрокредит</h2>
+    <p class="hint" style="margin-top:0;">Формула MVP + OpenAI: риск, вероятность, рекомендуемая сумма, статус заявки (pending / approved / rejected).</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;">
+      <a class="btn btn-primary btn-sm" href="{{ url_for('credit') }}">Подать заявку</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('credit_history') }}">История заявок</a>
+    </div>
+    {% if credits %}
+      <h3 class="subsection-title">Последние заявки</h3>
+      <ul class="credit-mini-list">
+        {% for c in credits %}
+          <li>
+            {{ c.created_at.strftime('%d.%m.%Y') }} —
+            {% set st = c.status or 'pending' %}
+            <span class="credit-status-badge credit-status-badge--{{ st }}" style="font-size:0.65rem;vertical-align:middle;">
+              {% if st == 'approved' %}одобрено{% elif st == 'rejected' %}отклонено{% else %}в работе{% endif %}
+            </span>
+            · риск <span class="risk-{{ c.risk_level or 'medium' }}">{{ c.risk_level or '—' }}</span>,
+            {{ c.approval_probability or '—' }}%
+            · <a href="{{ url_for('credit_result', application_id=c.id) }}">результат</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+</div>
+
+{% if current_user.role == 'seller' %}
+<section class="profile-card profile-card--wide" id="my-products">
+  <div class="profile-card__head">
+    <h2 class="profile-card__title" style="margin:0;">Мои товары</h2>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('add_product') }}">Добавить товар</a>
+  </div>
+  <p class="hint"><a href="{{ url_for('seller_public', sid=current_user.id) }}">Публичная витрина</a></p>
+  {% if my_products %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Категория</th>
+            <th>Eco</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in my_products %}
+            <tr>
+              <td>
+                <a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a>
+                <div class="hint" style="margin:0.25rem 0 0;font-weight:400;">{{ (p.description or '')[:80] }}{% if (p.description or '')|length > 80 %}…{% endif %}</div>
+              </td>
+              <td>{{ p.price | round(2) }} ₽</td>
+              <td><code>{{ p.category }}</code></td>
+              <td>{% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">eco</span>{% else %}—{% endif %}</td>
+              <td class="data-table__actions">
+                <a class="btn btn-ghost btn-sm" href="{{ url_for('product_edit', pid=p.id) }}">Редактировать</a>
+                <form method="post" action="{{ url_for('delete_product') }}" class="inline-form-danger" onsubmit="return confirm('Удалить этот товар?');">
+                  <input type="hidden" name="product_id" value="{{ p.id }}">
+                  <button type="submit" class="btn btn-ghost btn-sm" style="border-color:var(--danger);color:var(--danger);">Удалить</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="hint">Пока нет товаров. <a href="{{ url_for('add_product') }}">Добавить первый</a></p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% endblock %}

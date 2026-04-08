@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — AI Craft Hub{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h1 style="margin-top:0;">Регистрация</h1>
+  <form method="post">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required autocomplete="username">
+
+    <label for="password">Пароль</label>
+    <input type="password" id="password" name="password" required autocomplete="new-password">
+
+    <label for="display_name">Имя (необязательно)</label>
+    <input type="text" id="display_name" name="display_name" placeholder="Как к вам обращаться">
+
+    <label for="role">Роль</label>
+    <select id="role" name="role">
+      <option value="buyer">Покупатель</option>
+      <option value="seller">Продавец</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary" style="width:100%;">Создать аккаунт</button>
+  </form>
+  <p class="hint" style="margin-top:1rem;">Уже есть аккаунт? <a href="{{ url_for('login') }}">Вход</a></p>
+</div>
+{% endblock %}

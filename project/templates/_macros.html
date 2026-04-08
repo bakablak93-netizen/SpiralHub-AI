@@ -1,0 +1,9 @@
+{% macro product_image(p, hero=false) %}
+  {% if p.image_filename and p.image_filename is static_file %}
+    <div class="{% if hero %}product-photo-hero{% else %}card-photo{% endif %}">
+      <img src="{{ url_for('static', filename=p.image_filename) }}" alt="{{ p.title }}" loading="lazy" width="600" height="450">
+    </div>
+  {% else %}
+    <div class="placeholder-img" {% if hero %}style="min-height:280px;"{% endif %}>{{ p.category|upper }}</div>
+  {% endif %}
+{% endmacro %}

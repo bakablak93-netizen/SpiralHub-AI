@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Каталог — AI Craft Hub{% endblock %}
+{% block content %}
+<h1 style="margin-top:0;">Каталог товаров</h1>
+<p class="hint">Те же фильтры, что на главной. Карточки только с загруженным файлом изображения.</p>
+
+{% set form_action = url_for('catalog') %}
+{% include '_storefront_block.html' %}
+
+<p class="hint"><a href="{{ url_for('index') }}">← На главную</a></p>
+{% endblock %}

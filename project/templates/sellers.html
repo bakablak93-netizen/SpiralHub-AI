@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Каталог продавцов — AI Craft Hub{% endblock %}
+
+{% macro star_rating(r) -%}
+  <span class="seller-rating" title="Демо-рейтинг для витрины">{{ '%.1f'|format(r) }} <span aria-hidden="true">★</span></span>
+{%- endmacro %}
+
+{% block content %}
+<div class="sellers-page-head">
+  <h1 style="margin:0 0 0.35rem;">Каталог продавцов</h1>
+  <p class="hint" style="margin:0;">Найдите мастерскую по нише, eco-статусу или с помощью AI.</p>
+</div>
+
+{% if current_user and favorite_sellers_users %}
+<section class="favorites-bar" id="favorites">
+  <h2 class="favorites-bar__title">Избранные продавцы</h2>
+  <ul class="favorites-bar__list">
+    {% for s in favorite_sellers_users %}
+      <li>
+        <a href="{{ url_for('seller_public', sid=s.id) }}">{{ s.display_name or s.email }}</a>
+        <form method="post" action="{{ url_for('favorite_seller') }}" class="inline-fav-remove">
+          <input type="hidden" name="seller_id" value="{{ s.id }}">
+          <input type="hidden" name="action" value="remove">
+          <input type="hidden" name="next" value="{{ url_for('sellers_list') }}#favorites">
+          <button type="submit" class="link-btn" aria-label="Убрать из избранного">×</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="ai-seller-search card-panel">
+  <h2 class="panel-title">Найти продавца с помощью AI</h2>
+  <p class="hint" style="margin-top:0;">Опишите, что ищете: например «eco подарки ручной работы» или «изделия из дерева для интерьера».</p>
+  <form method="post" action="{{ url_for('ai_seller_search') }}" class="ai-seller-search__form">
+    <input type="text" name="query" placeholder="Ваш запрос…" value="" class="ai-seller-search__input" maxlength="400" required>
+    <button type="submit" class="btn btn-primary">Подобрать</button>
+  </form>
+  {% if ai_mode and ai_explanation %}
+    <div class="ai-seller-banner">
+      <p style="margin:0 0 0.5rem;"><strong>Порядок карточек по AI:</strong> {{ ai_explanation }}</p>
+      <a href="{{ url_for('sellers_list', clear_ai=1) }}" class="btn btn-ghost btn-sm">Сбросить подбор AI</a>
+    </div>
+  {% elif ai_mode %}
+    <p class="hint" style="margin:0.75rem 0 0;">Сначала отправьте запрос в форме выше.</p>
+  {% endif %}
+</section>
+
+<form method="get" action="{{ url_for('sellers_list') }}" class="sellers-filters card-panel">
+  {% if ai_mode %}<input type="hidden" name="ai" value="1">{% endif %}
+  <h2 class="panel-title">Поиск и фильтры</h2>
+  <div class="sellers-filters__grid">
+    <div class="field">
+      <label for="sq">По имени / описанию / товарам</label>
+      <input type="text" id="sq" name="q" value="{{ search_q }}" placeholder="например: керамика, Мария…">
+    </div>
+    <div class="field">
+      <label for="scat">Категория товаров</label>
+      <select id="scat" name="category">
+        <option value="">Все</option>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if filter_category == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="sminr">Мин. рейтинг (демо)</label>
+      <select id="sminr" name="min_rating">
+        <option value="">Любой</option>
+        <option value="4.5" {% if min_rating == 4.5 %}selected{% endif %}>от 4.5</option>
+        <option value="4.2" {% if min_rating == 4.2 %}selected{% endif %}>от 4.2</option>
+        <option value="4.0" {% if min_rating == 4.0 %}selected{% endif %}>от 4.0</option>
+        <option value="3.8" {% if min_rating == 3.8 %}selected{% endif %}>от 3.8</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="sminp">Мин. товаров с фото</label>
+      <select id="sminp" name="min_products">
+        <option value="">Любое</option>
+        <option value="2" {% if min_products == 2 %}selected{% endif %}>от 2</option>
+        <option value="3" {% if min_products == 3 %}selected{% endif %}>от 3</option>
+        <option value="5" {% if min_products == 5 %}selected{% endif %}>от 5</option>
+      </select>
+    </div>
+    <div class="field field--check">
+      <label class="checkbox-row" style="margin:0;padding-top:1.5rem;">
+        <input type="checkbox" name="eco" value="1" {% if eco_only %}checked{% endif %}>
+        <span>Только eco-продавцы <span class="hint">(≥35% eco-товаров)</span></span>
+      </label>
+    </div>
+  </div>
+  <div class="sellers-filters__actions">
+    <button type="submit" class="btn btn-primary">Применить</button>
+    <a href="{{ url_for('sellers_list') }}" class="btn btn-ghost btn-sm">Сбросить</a>
+  </div>
+</form>
+
+<p class="hint sellers-count-line">Найдено мастерских: <strong>{{ seller_cards|length }}</strong></p>
+
+<div class="grid seller-catalog-grid">
+  {% for card in seller_cards %}
+    {% set s = card.seller %}
+    <article class="card seller-catalog-card" id="card-{{ s.id }}">
+      <div class="card-body">
+        <div class="seller-catalog-card__top">
+          <h3><a href="{{ url_for('seller_public', sid=s.id) }}">{{ s.display_name or s.email }}</a></h3>
+          {% if card.is_eco_seller %}
+            <span class="badge-eco-seller" title="Доля eco-товаров ≥35%">Eco seller</span>
+          {% endif %}
+        </div>
+        <p class="seller-catalog-meta">
+          {{ star_rating(card.rating) }}
+          <span class="dot-sep">·</span>
+          <span>{{ card.product_count }} товаров</span>
+          <span class="dot-sep">·</span>
+          <span>eco {{ card.eco_percent }}%</span>
+        </p>
+        {% if s.seller_bio %}
+          <p class="hint seller-catalog-bio">{{ s.seller_bio[:180] }}{% if s.seller_bio|length > 180 %}…{% endif %}</p>
+        {% endif %}
+        <p class="hint seller-catalog-cats"><strong>Категории:</strong> {% for c in card.categories %}<code>{{ c }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+        <div class="seller-catalog-card__actions">
+          <a class="btn btn-primary btn-sm" href="{{ url_for('seller_public', sid=s.id) }}">Открыть профиль</a>
+          {% if current_user and current_user.id != s.id %}
+            <form method="post" action="{{ url_for('favorite_seller') }}" style="display:inline;">
+              <input type="hidden" name="seller_id" value="{{ s.id }}">
+              <input type="hidden" name="next" value="{{ url_for('sellers_list') }}#card-{{ s.id }}">
+              {% if s.id in favorite_ids %}
+                <input type="hidden" name="action" value="remove">
+                <button type="submit" class="btn btn-ghost btn-sm">Убрать из избранного</button>
+              {% else %}
+                <input type="hidden" name="action" value="add">
+                <button type="submit" class="btn btn-ghost btn-sm">В избранное</button>
+              {% endif %}
+            </form>
+          {% elif not current_user %}
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('login', next=url_for('sellers_list')) }}">Войти — избранное</a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  {% else %}
+    <p class="hint">Никто не подошёл под фильтры. Попробуйте снять eco или снизить рейтинг.</p>
+  {% endfor %}
+</div>
+{% endblock %}

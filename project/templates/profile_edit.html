@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Редактирование профиля — AI Craft Hub{% endblock %}
+{% block content %}
+<h1 style="margin-top:0;">Редактирование профиля</h1>
+
+<div class="form-card" style="max-width:520px;">
+  <form method="post">
+    <label for="display_name">Имя / название мастерской</label>
+    <input type="text" id="display_name" name="display_name" value="{{ current_user.display_name or '' }}" placeholder="Как показывать в профиле">
+
+    {% if current_user.role == 'seller' %}
+    <label for="seller_bio">О мастерской (публично на витрине)</label>
+    <textarea id="seller_bio" name="seller_bio" rows="4" placeholder="Коротко о вашем деле">{{ current_user.seller_bio or '' }}</textarea>
+    {% endif %}
+
+    <h2 class="section-title" style="font-size:1rem;margin-top:1.25rem;">Смена пароля</h2>
+    <p class="hint" style="margin-top:0;">Оставьте поля пустыми, если пароль менять не нужно.</p>
+
+    <label for="current_password">Текущий пароль</label>
+    <input type="password" id="current_password" name="current_password" autocomplete="current-password">
+
+    <label for="new_password">Новый пароль</label>
+    <input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="6">
+
+    <label for="new_password2">Повтор нового пароля</label>
+    <input type="password" id="new_password2" name="new_password2" autocomplete="new-password" minlength="6">
+
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem;">Сохранить</button>
+  </form>
+</div>
+<p class="hint"><a href="{{ url_for('profile') }}">← Назад в профиль</a></p>
+{% endblock %}
