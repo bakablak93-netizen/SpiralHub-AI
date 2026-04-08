@@ -1,34 +1,36 @@
 {% extends "base.html" %}
-{% block title %}AI-чат — AI Craft Hub{% endblock %}
+{% block title %}{{ _('chat.title') }}{% endblock %}
 {% block body_class %}page-chat{% endblock %}
 {% block content %}
 <div class="chat-page">
   <div class="chat-page__head">
-    <h1>AI-ассистент</h1>
-    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Закрыть</a>
+    <h1>{{ _('chat.heading') }}</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">{{ _('chat.close') }}</a>
   </div>
   <p class="hint chat-page__hint">
-    Описание товара, цена, идеи, продажи, eco — спрашивайте в чате.
+    {{ _('chat.lead') }}
   </p>
 
   <div class="chat-box">
     {% for m in messages %}
       <div class="msg {% if m.role == 'user' %}msg-user{% else %}msg-ai{% endif %}">
-        <div class="who">{% if m.role == 'user' %}Вы{% else %}AI Craft Hub{% endif %}</div>
+        <div class="who">{% if m.role == 'user' %}{{ _('chat.you') }}{% else %}{{ _('chat.bot_name') }}{% endif %}</div>
         {{ m.content }}
       </div>
     {% else %}
-      <p class="hint" style="margin:0;">Например: «Как назвать цену за вязаный шарф?»</p>
+      <p class="hint" style="margin:0;">{{ _('chat.placeholder_empty') }}</p>
     {% endfor %}
   </div>
 
   <div class="chat-page__composer">
     <form method="post" class="chat-form">
-      <input type="text" name="message" placeholder="Ваш вопрос…" autocomplete="off" required>
-      <button type="submit" class="btn btn-primary">Отправить</button>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="message" placeholder="{{ _('chat.input_ph') }}" autocomplete="off" required>
+      <button type="submit" class="btn btn-primary">{{ _('chat.send') }}</button>
     </form>
     <form method="post" action="{{ url_for('chat_clear') }}" style="margin-top:0.5rem;">
-      <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;">Очистить историю</button>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;">{{ _('chat.clear') }}</button>
     </form>
   </div>
 </div>

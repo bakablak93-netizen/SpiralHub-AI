@@ -1,64 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Добавить товар — AI Craft Hub{% endblock %}
+{% block title %}{{ _('add_product.title') }}{% endblock %}
 {% block content %}
-<h1 style="margin-top:0;">Добавить товар</h1>
+<h1 style="margin-top:0;">{{ _('add_product.heading') }}</h1>
+<p class="hint">{{ _('add_product.lead') }}</p>
 
 <div class="form-card" style="max-width:640px;">
-  {# POST на /add_product — тот же обработчик, что и для /product/create #}
   <form method="post" id="product-form" action="{{ url_for('add_product') }}" enctype="multipart/form-data">
-    <label for="image">Фото товара (необязательно)</label>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="product_image">{{ _('add_product.image_optional') }}</label>
     <input type="file" id="product_image" name="image" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp">
-    <p class="hint" style="margin-top:-0.5rem;">PNG, JPG или WEBP, до 5 МБ. Для витрины в каталоге фото лучше добавить.</p>
+    <p class="hint" style="margin-top:-0.5rem;">{{ _('add_product.image_hint2') }}</p>
 
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center;">
-      <button type="button" class="btn btn-primary btn-sm" id="btn-ai-photo">AI по фото: распознать и варианты описания</button>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-ai-photo">{{ _('add_product.ai_photo_btn') }}</button>
       <span class="hint" id="ai-photo-status"></span>
     </div>
 
     <div id="ai-photo-panel" class="ai-photo-panel" style="display:none;">
-      <p class="ai-detected"><strong>На фото:</strong> <span id="ai-detected-text"></span></p>
-      <p class="hint" id="ai-photo-demo" style="display:none;">Демо без API: задайте OPENAI_API_KEY для реального распознавания.</p>
+      <p class="ai-detected"><strong>{{ _('add_product.on_photo_label') }}</strong> <span id="ai-detected-text"></span></p>
+      <p class="hint" id="ai-photo-demo" style="display:none;">{{ _('add_product.demo_vision') }}</p>
       <div class="ai-actions">
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-apply-title">Подставить название</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-apply-category">Подставить категорию</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-apply-title">{{ _('add_product.apply_title') }}</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-apply-category">{{ _('add_product.apply_category') }}</button>
       </div>
-      <p class="hint" style="margin:0.5rem 0 0.25rem;">Выберите описание (можно править в поле ниже):</p>
+      <p class="hint" style="margin:0.5rem 0 0.25rem;">{{ _('add_product.pick_desc_hint') }}</p>
       <div id="ai-desc-variants" class="ai-desc-variants"></div>
     </div>
 
-    <label for="title">Название</label>
+    <label for="title">{{ _('add_product.title_label') }}</label>
     <input type="text" id="title" name="title" required>
 
-    <label for="category">Категория</label>
+    <label for="category">{{ _('add_product.category') }}</label>
     <select id="category" name="category">
       {% for c in categories %}
-        <option value="{{ c }}">{{ c }}</option>
+        <option value="{{ c }}">{{ _('cat.' + c) }}</option>
       {% endfor %}
     </select>
 
-    <label for="price">Цена (₽)</label>
+    <label for="price">{{ _('add_product.price') }}</label>
     <input type="number" id="price" name="price" step="0.01" min="0" required>
 
     <div class="checkbox-row">
       <input type="checkbox" id="is_eco" name="is_eco" value="1">
-      <label for="is_eco" style="margin:0;font-weight:500;">Отметить как eco / ESG товар</label>
+      <label for="is_eco" style="margin:0;font-weight:500;">{{ _('add_product.eco') }}</label>
     </div>
 
-    <label for="description">Описание</label>
-    <textarea id="description" name="description" rows="6" placeholder="Опишите материалы, размеры, уход…"></textarea>
+    <label for="description">{{ _('add_product.desc') }}</label>
+    <textarea id="description" name="description" rows="6" placeholder="{{ _('add_product.desc_ph') }}"></textarea>
 
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
-      <button type="button" class="btn btn-ghost btn-sm" id="btn-ai-desc">Сгенерировать описание через AI</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-ai-desc">{{ _('add_product.ai_desc_btn') }}</button>
       <span class="hint" id="ai-desc-status"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Сохранить товар</button>
+    <button type="submit" class="btn btn-primary">{{ _('add_product.submit') }}</button>
   </form>
 </div>
-<p class="hint"><a href="{{ url_for('profile') }}">← В профиль</a> · <a href="{{ url_for('catalog') }}">В каталог</a></p>
+<p class="hint"><a href="{{ url_for('profile') }}">{{ _('add_product.back') }}</a> · <a href="{{ url_for('catalog') }}">{{ _('add_product.link_catalog') }}</a></p>
 
 <script>
 (function() {
+  var L = {
+    pickPhoto: {{ _('add_product.pick_photo_first')|tojson }},
+    analyzing: {{ _('add_product.analyzing_photo')|tojson }},
+    needTitle: {{ _('add_product.need_title_first')|tojson }},
+    gen: {{ _('add_product.gen_running')|tojson }},
+    done: {{ _('add_product.done')|tojson }},
+    err: {{ _('common.error')|tojson }},
+    variant: {{ _('add_product.variant_n')|tojson }}
+  };
   let lastVision = null;
 
   document.getElementById('btn-ai-photo').addEventListener('click', async function() {
@@ -66,20 +76,21 @@
     const status = document.getElementById('ai-photo-status');
     const panel = document.getElementById('ai-photo-panel');
     if (!input.files || !input.files[0]) {
-      status.textContent = 'Сначала выберите файл фото.';
+      status.textContent = L.pickPhoto;
       return;
     }
-    status.textContent = 'Анализ фото…';
+    status.textContent = L.analyzing;
     panel.style.display = 'none';
     const fd = new FormData();
     fd.append('image', input.files[0]);
     const r = await fetch('{{ url_for("api_analyze_product_image") }}', {
       method: 'POST',
+      headers: window.csrfHeaders(),
       body: fd
     });
     const j = await r.json();
     if (!r.ok) {
-      status.textContent = j.error || 'Ошибка запроса';
+      status.textContent = j.error || L.err;
       return;
     }
     if (j.error && !j.descriptions) {
@@ -87,7 +98,7 @@
       return;
     }
     lastVision = j;
-    status.textContent = 'Готово';
+    status.textContent = L.done;
     document.getElementById('ai-detected-text').textContent = j.detected || '—';
     document.getElementById('ai-photo-demo').style.display = j.demo ? 'block' : 'none';
     const box = document.getElementById('ai-desc-variants');
@@ -96,7 +107,7 @@
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'btn btn-ghost btn-sm ai-variant-btn';
-      b.textContent = 'Вариант ' + (i + 1);
+      b.textContent = L.variant + ' ' + (i + 1);
       b.title = text;
       b.addEventListener('click', function() {
         document.getElementById('description').value = text;
@@ -127,19 +138,19 @@
     const title = document.getElementById('title').value.trim();
     const category = document.getElementById('category').value;
     const status = document.getElementById('ai-desc-status');
-    if (!title) { status.textContent = 'Сначала введите название'; return; }
-    status.textContent = 'Генерация…';
+    if (!title) { status.textContent = L.needTitle; return; }
+    status.textContent = L.gen;
     const r = await fetch('{{ url_for("api_describe") }}', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: window.csrfHeaders({'Content-Type': 'application/json'}),
       body: JSON.stringify({ title, category, hints: '' })
     });
     const j = await r.json();
     if (j.description) {
       document.getElementById('description').value = j.description;
-      status.textContent = 'Готово';
+      status.textContent = L.done;
     } else {
-      status.textContent = j.error || 'Ошибка';
+      status.textContent = j.error || L.err;
     }
   });
 })();

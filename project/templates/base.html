@@ -1,7 +1,20 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{ locale }}" data-theme="{{ user_prefs.theme }}" data-font="{{ user_prefs.font_scale }}">
 <head>
   <meta charset="UTF-8">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <script>
+    window.getCsrfToken = function () {
+      var m = document.querySelector('meta[name="csrf-token"]');
+      return m ? m.getAttribute("content") || "" : "";
+    };
+    window.csrfHeaders = function (base) {
+      var h = base ? Object.assign({}, base) : {};
+      var t = window.getCsrfToken();
+      if (t) h["X-CSRFToken"] = t;
+      return h;
+    };
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#2d6a4f">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,30 +29,31 @@
   <header class="site-header">
     <div class="wrap inner site-header__inner">
       <a href="{{ url_for('index') }}" class="logo">AI <span>Craft Hub</span></a>
-      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Открыть меню">
+      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="{{ _('nav.open_menu') }}">
         <span class="nav-toggle__bar" aria-hidden="true"></span>
         <span class="nav-toggle__bar" aria-hidden="true"></span>
         <span class="nav-toggle__bar" aria-hidden="true"></span>
       </button>
-      <nav id="main-nav" class="nav nav--main" aria-label="Основное меню">
-        <a href="{{ url_for('catalog') }}">Каталог</a>
-        <a href="{{ url_for('sellers_list') }}">Продавцы</a>
-        <a href="{{ url_for('chat') }}">AI-чат</a>
-        <a href="{{ url_for('credit') }}">Микрокредит</a>
+      <nav id="main-nav" class="nav nav--main" aria-label="{{ _('nav.main_nav') }}">
+        <a href="{{ url_for('catalog') }}">{{ _('nav.catalog') }}</a>
+        <a href="{{ url_for('sellers_list') }}">{{ _('nav.sellers') }}</a>
+        <a href="{{ url_for('chat') }}">{{ _('nav.chat') }}</a>
+        <a href="{{ url_for('credit') }}">{{ _('nav.credit') }}</a>
         {% if current_user %}
-          <a href="{{ url_for('credit_history') }}">Кредиты: история</a>
-          <a href="{{ url_for('favorites_products') }}">Избранное</a>
-          <a href="{{ url_for('profile') }}">Профиль</a>
+          <a href="{{ url_for('credit_history') }}">{{ _('nav.credit_history') }}</a>
+          <a href="{{ url_for('favorites_products') }}">{{ _('nav.favorites') }}</a>
+          <a href="{{ url_for('profile') }}">{{ _('nav.profile') }}</a>
+          <a href="{{ url_for('user_settings') }}">{{ _('nav.settings') }}</a>
           {% if current_user.role == 'seller' %}
-            <a href="{{ url_for('add_product') }}">Новый товар</a>
+            <a href="{{ url_for('add_product') }}">{{ _('nav.new_product') }}</a>
           {% endif %}
-          <a href="{{ url_for('logout') }}">Выйти</a>
+          <a href="{{ url_for('logout') }}">{{ _('nav.logout') }}</a>
         {% else %}
-          <a href="{{ url_for('login') }}">Вход</a>
-          <a href="{{ url_for('register') }}">Регистрация</a>
+          <a href="{{ url_for('login') }}">{{ _('nav.login') }}</a>
+          <a href="{{ url_for('register') }}">{{ _('nav.register') }}</a>
         {% endif %}
         {% if demo_mode %}
-          <span class="badge-demo" title="Задайте OPENAI_API_KEY в .env для реального AI">AI демо</span>
+          <span class="badge-demo" title="{{ _('demo.badge_title') }}">{{ _('demo.badge') }}</span>
         {% endif %}
       </nav>
     </div>
@@ -62,12 +76,12 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      AI Craft Hub — маркетплейс, AI и микрокредиты для ремесла и малого бизнеса.
+      {{ _('footer.tagline') }}
     </div>
   </footer>
 
   {% if request.endpoint != 'chat' %}
-  <a href="{{ url_for('chat') }}" class="fab-chat" aria-label="Открыть AI-чат">
+  <a href="{{ url_for('chat') }}" class="fab-chat" aria-label="{{ _('nav.chat') }}">
     <span class="fab-chat__icon" aria-hidden="true">💬</span>
     <span class="fab-chat__text">AI</span>
   </a>

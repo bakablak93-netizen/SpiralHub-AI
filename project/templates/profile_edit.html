@@ -1,32 +1,33 @@
 {% extends "base.html" %}
-{% block title %}Редактирование профиля — AI Craft Hub{% endblock %}
+{% block title %}{{ _('profile_edit.title') }}{% endblock %}
 {% block content %}
-<h1 style="margin-top:0;">Редактирование профиля</h1>
+<h1 style="margin-top:0;">{{ _('profile_edit.heading') }}</h1>
 
 <div class="form-card" style="max-width:520px;">
   <form method="post">
-    <label for="display_name">Имя / название мастерской</label>
-    <input type="text" id="display_name" name="display_name" value="{{ current_user.display_name or '' }}" placeholder="Как показывать в профиле">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="display_name">{{ _('profile_edit.display_name') }}</label>
+    <input type="text" id="display_name" name="display_name" value="{{ current_user.display_name or '' }}" placeholder="{{ _('profile_edit.display_name_ph') }}">
 
     {% if current_user.role == 'seller' %}
-    <label for="seller_bio">О мастерской (публично на витрине)</label>
-    <textarea id="seller_bio" name="seller_bio" rows="4" placeholder="Коротко о вашем деле">{{ current_user.seller_bio or '' }}</textarea>
+    <label for="seller_bio">{{ _('profile_edit.seller_bio') }}</label>
+    <textarea id="seller_bio" name="seller_bio" rows="4" placeholder="{{ _('profile_edit.seller_bio_ph') }}">{{ current_user.seller_bio or '' }}</textarea>
     {% endif %}
 
-    <h2 class="section-title" style="font-size:1rem;margin-top:1.25rem;">Смена пароля</h2>
-    <p class="hint" style="margin-top:0;">Оставьте поля пустыми, если пароль менять не нужно.</p>
+    <h2 class="section-title" style="font-size:1rem;margin-top:1.25rem;">{{ _('profile_edit.password_section') }}</h2>
+    <p class="hint" style="margin-top:0;">{{ _('profile_edit.password_hint') }}</p>
 
-    <label for="current_password">Текущий пароль</label>
+    <label for="current_password">{{ _('profile_edit.current_password') }}</label>
     <input type="password" id="current_password" name="current_password" autocomplete="current-password">
 
-    <label for="new_password">Новый пароль</label>
+    <label for="new_password">{{ _('profile_edit.new_password') }}</label>
     <input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="6">
 
-    <label for="new_password2">Повтор нового пароля</label>
+    <label for="new_password2">{{ _('profile_edit.new_password2') }}</label>
     <input type="password" id="new_password2" name="new_password2" autocomplete="new-password" minlength="6">
 
-    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem;">Сохранить</button>
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem;">{{ _('profile_edit.save') }}</button>
   </form>
 </div>
-<p class="hint"><a href="{{ url_for('profile') }}">← Назад в профиль</a></p>
+<p class="hint"><a href="{{ url_for('profile') }}">{{ _('profile_edit.back') }}</a></p>
 {% endblock %}

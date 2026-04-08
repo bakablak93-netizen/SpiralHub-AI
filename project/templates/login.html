@@ -1,17 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Вход — AI Craft Hub{% endblock %}
+{% block title %}{{ _('auth.login_title') }}{% endblock %}
 {% block content %}
 <div class="form-card">
-  <h1 style="margin-top:0;">Вход</h1>
+  <h1 style="margin-top:0;">{{ _('auth.login_heading') }}</h1>
   <form method="post">
-    <label for="email">Email</label>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="email">{{ _('auth.email') }}</label>
     <input type="email" id="email" name="email" required autocomplete="username">
 
-    <label for="password">Пароль</label>
+    <label for="password">{{ _('auth.password') }}</label>
     <input type="password" id="password" name="password" required autocomplete="current-password">
 
-    <button type="submit" class="btn btn-primary" style="width:100%;">Войти</button>
+    <button type="submit" class="btn btn-primary" style="width:100%;">{{ _('auth.submit_login') }}</button>
   </form>
-  <p class="hint" style="margin-top:1rem;">Нет аккаунта? <a href="{{ url_for('register') }}">Регистрация</a></p>
+  <p class="hint" style="margin-top:1rem;">{{ _('auth.no_account') }} <a href="{{ url_for('register') }}">{{ _('auth.register_link') }}</a></p>
 </div>
 {% endblock %}

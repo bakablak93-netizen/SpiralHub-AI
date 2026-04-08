@@ -1,7 +1,7 @@
 /* AI Craft Hub — тёплая природная палитра для ремесленников / eco */
 
 :root {
-  --bg: #f6f3ee;
+  --bg: #f5f4f1;
   --surface: #ffffff;
   --text: #1c1917;
   --muted: #57534e;
@@ -9,12 +9,19 @@
   --accent-light: #40916c;
   --warn: #b45309;
   --danger: #b91c1c;
-  --radius: 12px;
-  --shadow: 0 4px 24px rgba(28, 25, 23, 0.08);
+  /* Минимализм: мягкие скругления */
+  --radius: 20px;
+  --radius-lg: 26px;
+  --radius-md: 16px;
+  --radius-field: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 3px rgba(28, 25, 23, 0.06);
+  --shadow-hover: 0 12px 40px rgba(28, 25, 23, 0.08);
+  --border-ui: 1px solid rgba(28, 25, 23, 0.07);
   --font: "Segoe UI", system-ui, -apple-system, sans-serif;
-  /* Touch & mobile */
-  --tap-min: 44px;
-  --radius-btn: 14px;
+  /* Touch & mobile — крупнее зона нажатия */
+  --tap-min: 48px;
+  --radius-btn: 22px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
   --header-h: 56px;
@@ -53,9 +60,11 @@ a:hover {
 
 /* Header */
 .site-header {
-  background: var(--surface);
-  border-bottom: 1px solid #e7e5e4;
-  box-shadow: var(--shadow);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: var(--border-ui);
+  box-shadow: none;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -100,11 +109,11 @@ a:hover {
 }
 
 .badge-demo {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   background: #fef3c7;
   color: var(--warn);
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
   font-weight: 600;
 }
 
@@ -118,9 +127,11 @@ main {
 .hero {
   text-align: center;
   padding: 2.5rem 1rem 2rem;
-  background: linear-gradient(160deg, #d8f3dc 0%, var(--bg) 55%);
-  border-radius: var(--radius);
+  background: linear-gradient(165deg, #e8f5eb 0%, var(--bg) 50%, var(--bg) 100%);
+  border-radius: var(--radius-lg);
   margin-bottom: 2rem;
+  border: var(--border-ui);
+  box-shadow: var(--shadow);
 }
 
 .hero h1 {
@@ -147,42 +158,47 @@ main {
   align-items: center;
   justify-content: center;
   min-height: var(--tap-min);
-  padding: 0.55rem 1.15rem;
+  padding: 0.7rem 1.4rem;
   border-radius: var(--radius-btn);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
   border: none;
   cursor: pointer;
   font-family: inherit;
   text-align: center;
+  transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 .btn-primary {
   background: var(--accent);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(45, 106, 79, 0.22);
 }
 
 .btn-primary:hover {
   background: var(--accent-light);
   text-decoration: none;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(45, 106, 79, 0.28);
 }
 
 .btn-ghost {
   background: transparent;
   color: var(--accent);
-  border: 2px solid var(--accent);
+  border: 1.5px solid rgba(45, 106, 79, 0.35);
 }
 
 .btn-ghost:hover {
-  background: rgba(45, 106, 79, 0.08);
+  background: rgba(45, 106, 79, 0.06);
   text-decoration: none;
+  border-color: var(--accent);
 }
 
 .btn-sm {
-  padding: 0.4rem 0.85rem;
-  font-size: 0.875rem;
-  min-height: 40px;
+  padding: 0.5rem 1.05rem;
+  font-size: 0.9rem;
+  min-height: 44px;
+  border-radius: calc(var(--radius-btn) - 2px);
 }
 
 /* Cards grid */
@@ -197,12 +213,13 @@ main {
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
-  border: 1px solid #e7e5e4;
-  transition: transform 0.15s ease;
+  border: var(--border-ui);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
 }
 
 /* Кликабельная карточка целиком (главная) */
@@ -213,7 +230,7 @@ a.card-link {
 }
 
 a.card-link:hover {
-  box-shadow: 0 8px 28px rgba(28, 25, 23, 0.12);
+  box-shadow: var(--shadow-hover);
 }
 
 a.card-link h3 {
@@ -237,7 +254,7 @@ a.card-link h3 {
 }
 
 .product-photo-hero {
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 a.card-media-link {
@@ -275,8 +292,8 @@ a.card-media-link {
   letter-spacing: 0.04em;
   background: #d8f3dc;
   color: var(--accent);
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
   margin-left: 0.35rem;
 }
 
@@ -285,10 +302,10 @@ a.card-media-link {
   max-width: 480px;
   margin: 0 auto;
   background: var(--surface);
-  padding: 1.75rem;
-  border-radius: var(--radius);
+  padding: 1.75rem 1.85rem;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
-  border: 1px solid #e7e5e4;
+  border: var(--border-ui);
 }
 
 label {
@@ -305,12 +322,25 @@ input[type="number"],
 select,
 textarea {
   width: 100%;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  border: var(--border-ui);
+  border-radius: var(--radius-field);
   font-family: inherit;
   font-size: 1rem;
   margin-bottom: 1rem;
+  background: #fafaf9;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgba(45, 106, 79, 0.45);
+  background: var(--surface);
 }
 
 textarea {
@@ -337,10 +367,11 @@ textarea {
   gap: 0.75rem;
   align-items: flex-end;
   margin-bottom: 1.5rem;
-  padding: 1rem;
+  padding: 1.15rem 1.2rem;
   background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid #e7e5e4;
+  border-radius: var(--radius-lg);
+  border: var(--border-ui);
+  box-shadow: var(--shadow);
 }
 
 .filters .field {
@@ -360,8 +391,8 @@ textarea {
 }
 
 .flash-messages li {
-  padding: 0.65rem 1rem;
-  border-radius: 8px;
+  padding: 0.7rem 1.1rem;
+  border-radius: var(--radius-md);
   margin-bottom: 0.5rem;
 }
 
@@ -388,19 +419,20 @@ textarea {
 /* Chat */
 .chat-box {
   background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid #e7e5e4;
+  border-radius: var(--radius-lg);
+  border: var(--border-ui);
   min-height: 360px;
   max-height: 520px;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 1.1rem;
   margin-bottom: 1rem;
+  box-shadow: var(--shadow);
 }
 
 .msg {
   margin-bottom: 0.85rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
   max-width: 92%;
 }
 
@@ -439,11 +471,13 @@ textarea {
 
 /* Credit result */
 .result-panel {
-  background: linear-gradient(135deg, #ecfdf5, #fff);
-  border: 2px solid var(--accent-light);
-  border-radius: var(--radius);
-  padding: 1.25rem;
+  background: linear-gradient(135deg, #f4fbf7, #fff);
+  border: var(--border-ui);
+  border-left: 3px solid var(--accent-light);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.45rem;
   margin-top: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
 .risk-low {
@@ -503,9 +537,9 @@ textarea {
 .credit-hero__card {
   background: linear-gradient(160deg, #0c4a6e 0%, #164e63 100%);
   color: #ecfeff;
-  border-radius: var(--radius);
-  padding: 1.25rem;
-  box-shadow: 0 12px 40px rgba(12, 74, 110, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.4rem;
+  box-shadow: 0 8px 32px rgba(12, 74, 110, 0.18);
 }
 
 .credit-hero__card label {
@@ -516,7 +550,7 @@ textarea {
 .credit-hero__card input {
   width: 100%;
   margin-bottom: 0.75rem;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
@@ -546,6 +580,7 @@ textarea {
 .form-card--credit {
   max-width: 920px;
   margin-bottom: 5rem;
+  border-radius: var(--radius-lg);
 }
 
 @media (min-width: 769px) {
@@ -582,26 +617,30 @@ textarea {
 }
 
 .credit-result-card {
-  border-radius: var(--radius);
-  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.65rem;
   margin-bottom: 1.5rem;
-  border: 2px solid #e7e5e4;
+  border: var(--border-ui);
   background: #fff;
+  box-shadow: var(--shadow);
 }
 
 .credit-result-card--risk-low {
-  border-color: #86efac;
-  background: linear-gradient(135deg, #f0fdf4, #fff);
+  border: 1px solid rgba(134, 239, 172, 0.85);
+  border-left-width: 3px;
+  background: linear-gradient(135deg, #f6fdf9, #fff);
 }
 
 .credit-result-card--risk-medium {
-  border-color: #fcd34d;
-  background: linear-gradient(135deg, #fffbeb, #fff);
+  border: 1px solid rgba(252, 211, 77, 0.65);
+  border-left-width: 3px;
+  background: linear-gradient(135deg, #fffdf8, #fff);
 }
 
 .credit-result-card--risk-high {
-  border-color: #fca5a5;
-  background: linear-gradient(135deg, #fef2f2, #fff);
+  border: 1px solid rgba(252, 165, 165, 0.85);
+  border-left-width: 3px;
+  background: linear-gradient(135deg, #fffafa, #fff);
 }
 
 .credit-result-grid {
@@ -677,7 +716,7 @@ textarea {
   padding: 0.4rem 0.75rem;
   background: #d1fae5;
   color: #065f46;
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   font-size: 0.88rem;
   font-weight: 600;
 }
@@ -701,8 +740,8 @@ textarea {
 
 .credit-status-badge {
   display: inline-block;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -724,8 +763,8 @@ textarea {
 
 .credit-ai-block {
   background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: var(--radius);
+  border: var(--border-ui);
+  border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
 }
 
@@ -786,7 +825,7 @@ textarea {
 .placeholder-img {
   aspect-ratio: 4/3;
   background: linear-gradient(145deg, #d8f3dc, #b7e4c7);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -820,11 +859,12 @@ textarea {
 
 /* AI по фото — создание товара */
 .ai-photo-panel {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: var(--radius);
-  padding: 1rem;
+  background: #f6fdf8;
+  border: 1px solid rgba(187, 247, 208, 0.65);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem 1.25rem;
   margin-bottom: 1.25rem;
+  box-shadow: var(--shadow);
 }
 
 .ai-detected {
@@ -854,9 +894,9 @@ textarea {
 
 .profile-account-panel {
   background: var(--surface);
-  border: 1px solid #e7e5e4;
-  border-radius: var(--radius);
-  padding: 1rem 1.15rem;
+  border: var(--border-ui);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.2rem;
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow);
 }
@@ -886,9 +926,9 @@ textarea {
 
 .profile-card {
   background: var(--surface);
-  border: 1px solid #e7e5e4;
-  border-radius: var(--radius);
-  padding: 1.15rem 1.25rem;
+  border: var(--border-ui);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.35rem;
   box-shadow: var(--shadow);
 }
 
@@ -897,7 +937,7 @@ textarea {
 }
 
 .profile-card--user {
-  border-top: 3px solid var(--accent);
+  border-top: 2px solid var(--accent);
 }
 
 .profile-card__head {
@@ -954,7 +994,7 @@ textarea {
   min-width: 100px;
   background: linear-gradient(160deg, #f0fdf4, #fff);
   border: 1px solid #bbf7d0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 0.75rem 0.85rem;
   text-align: center;
 }
@@ -999,8 +1039,8 @@ textarea {
 
 .ai-advice-block {
   background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: 10px;
+  border: var(--border-ui);
+  border-radius: var(--radius-md);
   padding: 0.85rem 1rem;
 }
 
@@ -1031,7 +1071,7 @@ textarea {
 
 .data-table th,
 .data-table td {
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: var(--border-ui);
   padding: 0.65rem 0.5rem;
   text-align: left;
   vertical-align: top;
@@ -1070,9 +1110,9 @@ textarea {
 
 .card-panel {
   background: var(--surface);
-  border: 1px solid #e7e5e4;
-  border-radius: var(--radius);
-  padding: 1.15rem 1.25rem;
+  border: var(--border-ui);
+  border-radius: var(--radius-lg);
+  padding: 1.2rem 1.35rem;
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow);
 }
@@ -1101,7 +1141,7 @@ textarea {
   padding: 0.85rem 1rem;
   background: linear-gradient(135deg, #ecfdf5, #fff);
   border: 1px solid #bbf7d0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .sellers-filters__grid {
@@ -1156,8 +1196,8 @@ textarea {
   letter-spacing: 0.06em;
   background: linear-gradient(135deg, #d8f3dc, #b7e4c7);
   color: #1b4332;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.28rem 0.55rem;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
@@ -1190,8 +1230,8 @@ textarea {
 .seller-catalog-cats code {
   font-size: 0.8rem;
   background: #f5f5f4;
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
 }
 
 .seller-catalog-card__actions {
@@ -1253,7 +1293,7 @@ textarea {
   align-items: flex-start;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: var(--border-ui);
 }
 
 .seller-about .panel-title {
@@ -1292,8 +1332,8 @@ textarea {
 
 .seller-analysis-block {
   background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: 10px;
+  border: var(--border-ui);
+  border-radius: var(--radius-md);
   padding: 0.85rem 1rem;
   font-size: 0.9rem;
   line-height: 1.5;
@@ -1377,7 +1417,7 @@ textarea {
 
 .checkout-thumb .card-photo {
   width: 120px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -1395,8 +1435,8 @@ textarea {
   margin-top: 1rem;
   padding: 0.85rem 1rem;
   background: #fafaf9;
-  border: 1px solid #e7e5e4;
-  border-radius: 10px;
+  border: var(--border-ui);
+  border-radius: var(--radius-md);
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -1442,8 +1482,8 @@ textarea {
 
 .order-status {
   display: inline-block;
-  padding: 0.15rem 0.45rem;
-  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1455,7 +1495,7 @@ textarea {
 }
 
 .eco-alt-panel {
-  border-top: 3px solid #86efac;
+  border-top: 2px solid rgba(134, 239, 172, 0.75);
 }
 
 /* =============================================================================
@@ -1544,7 +1584,7 @@ body.nav-open .nav-overlay {
     margin: 0;
     padding: calc(var(--header-h) + var(--safe-top) + 0.5rem) 1.25rem 1.5rem;
     background: var(--surface);
-    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+    box-shadow: -4px 0 40px rgba(0, 0, 0, 0.07);
     flex-direction: column;
     align-items: stretch;
     gap: 0.25rem;
@@ -1589,14 +1629,14 @@ body.nav-open .nav-overlay {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: linear-gradient(145deg, var(--accent), #1b4332);
   color: #fff;
   text-decoration: none;
-  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.45);
-  font-size: 0.65rem;
+  box-shadow: 0 8px 28px rgba(45, 106, 79, 0.35);
+  font-size: 0.68rem;
   font-weight: 800;
   line-height: 1;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -1627,8 +1667,8 @@ body.page-credit .fab-chat {
   .fab-chat {
     right: 1.5rem;
     bottom: 1.5rem;
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
   }
 }
 
@@ -1683,7 +1723,7 @@ body.page-chat .chat-page__head {
   flex-shrink: 0;
   padding: 0.65rem 1rem;
   background: var(--surface);
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: var(--border-ui);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1711,7 +1751,7 @@ body.page-chat .chat-page__composer {
   bottom: 0;
   padding: 0.5rem 0.75rem calc(0.5rem + var(--safe-bottom));
   background: var(--surface);
-  border-top: 1px solid #e7e5e4;
+  border-top: var(--border-ui);
   z-index: 50;
 }
 
@@ -1800,15 +1840,15 @@ body.page-chat .chat-form .btn {
 
 .category-chip {
   flex: 0 0 auto;
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1.1rem;
   min-height: var(--tap-min);
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 600;
   background: var(--surface);
-  border: 2px solid #d6d3d1;
+  border: var(--border-ui);
   color: var(--text);
   text-decoration: none;
   white-space: nowrap;
@@ -1837,11 +1877,11 @@ body.page-chat .chat-form .btn {
   justify-content: center;
   gap: 0.5rem;
   border-radius: var(--radius-btn);
-  border: 2px solid var(--accent);
+  border: 1.5px solid rgba(45, 106, 79, 0.4);
   background: var(--surface);
   color: var(--accent);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   font-family: inherit;
 }
@@ -1869,7 +1909,7 @@ body.page-chat .chat-form .btn {
 
 .ai-seller-search__input {
   min-height: var(--tap-min);
-  border-radius: var(--radius-btn);
+  border-radius: var(--radius-field);
 }
 
 .ai-seller-search__form .btn {
@@ -1917,7 +1957,7 @@ body.page-chat .chat-form .btn {
   padding: 0.65rem 1rem calc(0.65rem + var(--safe-bottom));
   background: linear-gradient(180deg, transparent, var(--bg) 18%);
   background-color: rgba(246, 243, 238, 0.96);
-  border-top: 1px solid #e7e5e4;
+  border-top: var(--border-ui);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
 }
 
@@ -1926,8 +1966,8 @@ body.page-chat .chat-form .btn {
   max-width: 560px;
   margin: 0 auto;
   display: flex;
-  min-height: 48px;
-  border-radius: 16px;
+  min-height: 52px;
+  border-radius: var(--radius-btn);
   font-size: 1.05rem;
 }
 
@@ -1974,7 +2014,7 @@ body.page-chat .chat-form .btn {
 
 .product-card-m {
   background: #fafaf9;
-  border: 1px solid #e7e5e4;
+  border: var(--border-ui);
   border-radius: var(--radius);
   padding: 1rem 1.1rem;
   text-align: left;
@@ -2090,14 +2130,14 @@ body.page-chat .chat-form .btn {
   gap: 0.5rem;
   padding: 0.65rem 1rem calc(0.65rem + var(--safe-bottom));
   background: rgba(255, 255, 255, 0.97);
-  border-top: 1px solid #e7e5e4;
+  border-top: var(--border-ui);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .credit-wiz-bar .btn {
   flex: 1;
-  min-height: 48px;
-  border-radius: 16px;
+  min-height: 52px;
+  border-radius: var(--radius-btn);
 }
 
 .credit-wiz-submit {
@@ -2251,4 +2291,236 @@ body.page-chat .chat-form .btn {
   body.page-credit {
     padding-bottom: 0;
   }
+}
+
+/* --- Глобальная тёмная тема (сессия user_prefs.theme) --- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141312;
+  --surface: #1c1917;
+  --text: #fafaf9;
+  --muted: #a8a29e;
+  --accent: #40916c;
+  --accent-light: #52b788;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --border-ui: 1px solid rgba(250, 250, 249, 0.08);
+}
+
+html[data-theme="dark"] .site-header {
+  background: rgba(28, 25, 23, 0.94);
+}
+
+html[data-theme="dark"] .nav-toggle__bar {
+  background: var(--text);
+}
+
+html[data-theme="dark"] .fab-chat {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Масштаб шрифта (user_prefs.font_scale) */
+html[data-font="sm"] {
+  font-size: 93.75%;
+}
+
+html[data-font="md"] {
+  font-size: 100%;
+}
+
+html[data-font="lg"] {
+  font-size: 112.5%;
+}
+
+/* --- Страница настроек --- */
+.settings-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.settings-page__head {
+  margin-bottom: 1.25rem;
+}
+
+.settings-page__sub {
+  margin: 0.35rem 0 0;
+}
+
+.settings-accordion {
+  border: var(--border-ui);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  margin-bottom: 0.65rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.settings-accordion__title {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.9rem 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.settings-accordion__title::-webkit-details-marker {
+  display: none;
+}
+
+.settings-accordion__title::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.settings-accordion[open] > .settings-accordion__title::after {
+  transform: rotate(-135deg);
+  margin-top: 0.2rem;
+}
+
+.settings-accordion__body {
+  padding: 0 1rem 1rem;
+  border-top: var(--border-ui);
+}
+
+.settings-label {
+  display: block;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.settings-select {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-field);
+  border: var(--border-ui);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.settings-form .settings-accordion:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.settings-link-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.settings-link-list li {
+  margin-bottom: 1rem;
+}
+
+.settings-link-list li:last-child {
+  margin-bottom: 0;
+}
+
+.settings-inline-hint {
+  display: block;
+  margin: 0.35rem 0 0 0.15rem;
+  font-size: 0.9rem;
+}
+
+.settings-strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.settings-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+  cursor: pointer;
+  line-height: 1.45;
+}
+
+.settings-check input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.settings-check--block {
+  margin-top: 0.5rem;
+}
+
+.settings-radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+}
+
+.settings-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: var(--border-ui);
+}
+
+.settings-danger-zone {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(185, 28, 28, 0.35);
+}
+
+html[data-theme="dark"] .settings-danger-zone {
+  border-top-color: rgba(248, 113, 113, 0.35);
+}
+
+/* Юридические страницы и FAQ */
+.legal-page,
+.faq-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.legal-page p,
+.faq-page p {
+  line-height: 1.65;
+}
+
+.legal-page .faq-list {
+  margin: 1rem 0 0;
+}
+
+.legal-page .faq-list dt {
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.legal-page .faq-list dt:first-child {
+  margin-top: 0;
+}
+
+.legal-page .faq-list dd {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  color: var(--muted);
 }

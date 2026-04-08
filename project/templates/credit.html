@@ -1,121 +1,135 @@
 {% extends "base.html" %}
-{% block title %}AI Микрокредиты — AI Craft Hub{% endblock %}
+{% block title %}{{ _('credit.title') }}{% endblock %}
 {% block body_class %}page-credit{% endblock %}
 {% block content %}
 
 <section class="credit-hero">
   <div class="credit-hero__text">
-    <h1 style="margin-top:0;">AI Микрокредиты для ремесла</h1>
+    <h1 style="margin-top:0;">{{ _('credit.hero_title') }}</h1>
     <p class="credit-lead">
-      Финтех-сервис для самозанятых и мастеров: заявка онлайн, мгновенный скоринг (MVP) и
-      персональные советы от AI. Это <strong>не</strong> публичная оферта банка — демонстрационный продукт платформы.
+      {{ _('credit.hero_lead') }}
     </p>
     <ul class="credit-benefits">
-      <li><span class="credit-benefits__icon">⚡</span> Решение за минуты: риск, вероятность одобрения, рекомендуемая сумма</li>
-      <li><span class="credit-benefits__icon">🌿</span> ESG: категории <strong>eco</strong> и <strong>bio</strong> получают бонус к скорингу</li>
-      <li><span class="credit-benefits__icon">🤖</span> OpenAI объясняет результат и подсказывает, как усилить заявку</li>
+      <li><span class="credit-benefits__icon">⚡</span> {{ _('credit.b1') }}</li>
+      <li><span class="credit-benefits__icon">🌿</span> {{ _('credit.b2') }}</li>
+      <li><span class="credit-benefits__icon">🤖</span> {{ _('credit.b3') }}</li>
     </ul>
     <p class="hint" style="margin-bottom:0;">
-      Уже подавали? <a href="{{ url_for('credit_history') }}">История заявок</a>
+      {{ _('credit.history_prompt') }} <a href="{{ url_for('credit_history') }}">{{ _('credit.history_link') }}</a>
     </p>
   </div>
   <div class="credit-hero__card">
-    <h2 class="credit-sim-title">Симулятор платежа</h2>
-    <p class="hint" style="margin-top:0;">Аннуитет, ставка 21% годовых (условный пример для MVP).</p>
-    <label for="sim_amount">Сумма (₽)</label>
+    <h2 class="credit-sim-title">{{ _('credit.sim_title') }}</h2>
+    <p class="hint" style="margin-top:0;">{{ _('credit.sim_hint') }}</p>
+    <label for="sim_amount">{{ _('credit.sim_amount') }}</label>
     <input type="number" id="sim_amount" min="1000" step="1000" value="100000">
-    <label for="sim_months">Срок (мес.)</label>
+    <label for="sim_months">{{ _('credit.sim_months') }}</label>
     <input type="number" id="sim_months" min="1" max="60" step="1" value="12">
-    <p class="credit-sim-result" id="sim_payment_out">Ежемесячный платёж: <strong>—</strong></p>
+    <p class="credit-sim-result" id="sim_payment_out"><strong>—</strong></p>
   </div>
 </section>
 
 {% if example %}
 <div class="result-panel result-panel--muted">
-  <strong>Пример для демо:</strong>
+  <strong>{{ _('credit.example_title') }}</strong>
   <p class="hint" style="margin:0.5rem 0 0;">
-    {{ example.name }}, {{ example.amount | int }} ₽, доход {{ example.income | int }} ₽/мес,
-    продаж: {{ example.sales }}, стаж {{ example.experience_months }} мес., категория {{ example.category }}.
+    {{ example.name }} — {{ example.amount | int }} ₽ · {{ _('credit.income') }} {{ example.income | int }} ₽ ·
+    {{ _('credit.sales') }} {{ example.sales }} · {{ _('credit.exp') }} {{ example.experience_months }} {{ _('credit.sum_suffix_mo') }} ·
+    {{ _('credit.biz_cat') }}: {{ example.category }}
   </p>
 </div>
 {% endif %}
 
 <div class="form-card form-card--credit">
-  <h2 style="margin-top:0;">Заявка</h2>
-  <p class="hint" style="margin-top:0;">Шаг 1: сумма и срок · Шаг 2: о бизнесе · Шаг 3: проверка и отправка</p>
+  <h2 style="margin-top:0;">{{ _('credit.form_title') }}</h2>
+  <p class="hint" style="margin-top:0;">{{ _('credit.form_lead') }}</p>
 
   <form method="post" id="credit-form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div id="credit-wizard" class="credit-wiz-steps">
       <section class="credit-wiz-step" data-step="1">
-        <h3 class="credit-wiz-heading">Сумма и срок</h3>
-        <label for="credit_amount_range">Сумма кредита (ползунок)</label>
+        <h3 class="credit-wiz-heading">{{ _('credit.step1') }}</h3>
+        <label for="credit_amount_range">{{ _('credit.step1_range') }}</label>
         <div class="credit-range-wrap">
-          <input type="range" id="credit_amount_range" min="10000" max="500000" step="5000" value="100000" aria-label="Сумма кредита">
-          <label for="requested_amount">Точная сумма (₽)</label>
+          <input type="range" id="credit_amount_range" min="10000" max="500000" step="5000" value="100000" aria-label="{{ _('credit.step1_range') }}">
+          <label for="requested_amount">{{ _('credit.amount_exact') }}</label>
           <input type="number" id="requested_amount" name="requested_amount" step="1000" min="1000" max="5000000" required
             value="{{ request.form.get('requested_amount', '') }}">
         </div>
-        <label for="loan_term_months">Желаемый срок возврата (месяцев, для ориентира)</label>
-        <input type="range" id="loan_term_months" min="3" max="36" step="1" value="12" aria-valuemin="3" aria-valuemax="36" aria-label="Срок в месяцах">
-        <p class="hint" style="margin:0;">Срок: <strong id="loan_term_out">12</strong> мес. (не сохраняется в заявке, только для планирования)</p>
+        <label for="loan_term_months">{{ _('credit.term_slider') }}</label>
+        <input type="range" id="loan_term_months" min="3" max="36" step="1" value="12" aria-valuemin="3" aria-valuemax="36" aria-label="{{ _('credit.term_slider') }}">
+        <p class="hint" style="margin:0;">{{ _('credit.term_note') }} <strong id="loan_term_out">12</strong> {{ _('credit.term_suffix') }}</p>
       </section>
 
       <section class="credit-wiz-step" data-step="2" hidden>
-        <h3 class="credit-wiz-heading">О вас и бизнесе</h3>
-        <label for="applicant_name">Имя заявителя</label>
+        <h3 class="credit-wiz-heading">{{ _('credit.step2') }}</h3>
+        <label for="applicant_name">{{ _('credit.applicant_name') }}</label>
         <input type="text" id="applicant_name" name="applicant_name" required maxlength="120"
           value="{{ request.form.get('applicant_name', '') }}"
-          placeholder="Как к вам обращаться">
+          placeholder="{{ _('credit.applicant_ph') }}">
 
-        <label for="monthly_income">Ежемесячный доход (₽)</label>
+        <label for="monthly_income">{{ _('credit.income') }}</label>
         <input type="number" id="monthly_income" name="monthly_income" step="500" min="0" required
           value="{{ request.form.get('monthly_income', '') }}">
 
-        <label for="sales_count_30d">Количество продаж (за 30 дней)</label>
+        <label for="sales_count_30d">{{ _('credit.sales') }}</label>
         <input type="number" id="sales_count_30d" name="sales_count_30d" step="1" min="0" required
           value="{{ request.form.get('sales_count_30d', '') }}">
 
-        <label for="experience_months">Стаж бизнеса (месяцев)</label>
+        <label for="experience_months">{{ _('credit.exp') }}</label>
         <input type="number" id="experience_months" name="experience_months" step="1" min="0" max="600" required
           value="{{ request.form.get('experience_months', '') }}">
 
-        <label for="business_category">Категория бизнеса</label>
+        <label for="business_category">{{ _('credit.biz_cat') }}</label>
         <select id="business_category" name="business_category" required>
           {% for c in categories %}
             <option value="{{ c }}" {% if request.form.get('business_category', 'handmade') == c %}selected{% endif %}>
-              {% if c == 'eco' %}Эко / устойчивое{% elif c == 'handmade' %}Handmade{% elif c == 'agro' %}Агро{% else %}Bio{% endif %}
+              {% if c == 'eco' %}{{ _('credit.cat_eco') }}{% elif c == 'handmade' %}{{ _('credit.cat_handmade') }}{% elif c == 'agro' %}{{ _('credit.cat_agro') }}{% else %}{{ _('credit.cat_bio') }}{% endif %}
             </option>
           {% endfor %}
         </select>
 
-        <label for="business_description">Описание бизнеса</label>
+        <label for="business_description">{{ _('credit.biz_desc') }}</label>
         <textarea id="business_description" name="business_description" required minlength="15" rows="5"
-          placeholder="Ниша, каналы продаж, планы, eco-практики…">{{ request.form.get('business_description', '') }}</textarea>
+          placeholder="{{ _('credit.biz_desc_ph') }}">{{ request.form.get('business_description', '') }}</textarea>
 
         {% if example %}
-        <button type="button" class="btn btn-ghost btn-sm" id="fill-example">Заполнить примером</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="fill-example">{{ _('credit.fill_example') }}</button>
         {% endif %}
       </section>
 
       <section class="credit-wiz-step" data-step="3" hidden>
-        <h3 class="credit-wiz-heading">Подтверждение</h3>
-        <p class="hint" style="margin-top:0;">Проверьте данные и нажмите «Подать заявку».</p>
+        <h3 class="credit-wiz-heading">{{ _('credit.step3') }}</h3>
+        <p class="hint" style="margin-top:0;">{{ _('credit.step3_hint') }}</p>
         <div class="credit-wiz-summary" id="credit-summary-box" aria-live="polite"></div>
       </section>
     </div>
 
     <div class="credit-wiz-bar">
-      <button type="button" class="btn btn-ghost credit-wiz-prev" hidden>Назад</button>
-      <button type="button" class="btn btn-primary credit-wiz-next">Далее</button>
-      <button type="submit" class="btn btn-primary credit-wiz-submit" hidden>Подать заявку</button>
+      <button type="button" class="btn btn-ghost credit-wiz-prev" hidden>{{ _('credit.wiz_prev') }}</button>
+      <button type="button" class="btn btn-primary credit-wiz-next">{{ _('credit.wiz_next') }}</button>
+      <button type="submit" class="btn btn-primary credit-wiz-submit" hidden>{{ _('credit.wiz_submit') }}</button>
     </div>
   </form>
 </div>
 
-<p class="hint"><a href="{{ url_for('index') }}">← На главную</a></p>
+<p class="hint"><a href="{{ url_for('index') }}">{{ _('credit.back_home') }}</a></p>
 
 <script>
+window.CREDIT_SUM_L = {
+  amount: {{ _('credit.sum_amount')|tojson }},
+  term: {{ _('credit.sum_term')|tojson }},
+  name: {{ _('credit.sum_name')|tojson }},
+  income: {{ _('credit.sum_income')|tojson }},
+  sales: {{ _('credit.sum_sales')|tojson }},
+  exp: {{ _('credit.sum_exp')|tojson }},
+  cat: {{ _('credit.sum_cat')|tojson }},
+  desc: {{ _('credit.sum_desc')|tojson }},
+  mo: {{ _('credit.sum_suffix_mo')|tojson }},
+  simPay: {{ _('credit.sim_payment_label')|tojson }}
+};
 window.updateCreditSummary = function () {
+  var L = window.CREDIT_SUM_L;
   var box = document.getElementById('credit-summary-box');
   if (!box) return;
   function v(id) {
@@ -125,15 +139,16 @@ window.updateCreditSummary = function () {
   var cat = document.getElementById('business_category');
   var catLabel = cat && cat.options[cat.selectedIndex] ? cat.options[cat.selectedIndex].text : '';
   var months = document.getElementById('loan_term_out');
+  var termText = months ? months.textContent : '—';
   box.innerHTML =
-    '<p><strong>Сумма:</strong> ' + (v('requested_amount') || '—') + ' ₽</p>' +
-    '<p><strong>Срок (ориентир):</strong> ' + (months ? months.textContent : '—') + ' мес.</p>' +
-    '<p><strong>Имя:</strong> ' + (v('applicant_name') || '—') + '</p>' +
-    '<p><strong>Доход / мес.:</strong> ' + (v('monthly_income') || '—') + ' ₽</p>' +
-    '<p><strong>Продаж (30 дн.):</strong> ' + (v('sales_count_30d') || '—') + '</p>' +
-    '<p><strong>Стаж:</strong> ' + (v('experience_months') || '—') + ' мес.</p>' +
-    '<p><strong>Категория:</strong> ' + catLabel + '</p>' +
-    '<p><strong>Описание:</strong> ' + (v('business_description').slice(0, 200) || '—') + (v('business_description').length > 200 ? '…' : '') + '</p>';
+    '<p><strong>' + L.amount + '</strong> ' + (v('requested_amount') || '—') + ' ₽</p>' +
+    '<p><strong>' + L.term + '</strong> ' + termText + ' ' + L.mo + '</p>' +
+    '<p><strong>' + L.name + '</strong> ' + (v('applicant_name') || '—') + '</p>' +
+    '<p><strong>' + L.income + '</strong> ' + (v('monthly_income') || '—') + ' ₽</p>' +
+    '<p><strong>' + L.sales + '</strong> ' + (v('sales_count_30d') || '—') + '</p>' +
+    '<p><strong>' + L.exp + '</strong> ' + (v('experience_months') || '—') + ' ' + L.mo + '</p>' +
+    '<p><strong>' + L.cat + '</strong> ' + catLabel + '</p>' +
+    '<p><strong>' + L.desc + '</strong> ' + (v('business_description').slice(0, 200) || '—') + (v('business_description').length > 200 ? '…' : '') + '</p>';
 };
 </script>
 
@@ -164,6 +179,7 @@ window.updateCreditSummary = function () {
 <script>
 (function() {
   var ANNUAL = 0.21;
+  var loc = document.documentElement.lang || 'ru';
   function monthlyPayment(principal, months) {
     if (principal <= 0 || months <= 0) return 0;
     var r = ANNUAL / 12;
@@ -171,14 +187,15 @@ window.updateCreditSummary = function () {
     return principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
   }
   function fmt(n) {
-    return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(n) + ' ₽';
+    return new Intl.NumberFormat(loc, { maximumFractionDigits: 0 }).format(n) + ' ₽';
   }
   function updateSim() {
     var p = parseFloat(document.getElementById('sim_amount').value) || 0;
     var n = parseInt(document.getElementById('sim_months').value, 10) || 1;
     var m = monthlyPayment(p, n);
+    var label = window.CREDIT_SUM_L ? window.CREDIT_SUM_L.simPay : '';
     document.getElementById('sim_payment_out').innerHTML =
-      'Ежемесячный платёж: <strong>' + fmt(m) + '</strong>';
+      label + ' <strong>' + fmt(m) + '</strong>';
   }
   ['sim_amount', 'sim_months'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', updateSim);

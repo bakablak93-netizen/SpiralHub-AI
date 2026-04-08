@@ -1,24 +1,24 @@
 {% extends "base.html" %}
-{% block title %}История заявок — Микрокредит{% endblock %}
+{% block title %}{{ _('credit_history.title') }}{% endblock %}
 {% block content %}
 
-<h1 style="margin-top:0;">История заявок на микрокредит</h1>
-<p class="hint">Все заявки, которые вы подали в этом аккаунте. Статусы выставляются автоматикой MVP.</p>
+<h1 style="margin-top:0;">{{ _('credit_history.heading') }}</h1>
+<p class="hint">{{ _('credit_history.lead') }}</p>
 
 {% if not applications %}
-<p>Пока нет заявок. <a href="{{ url_for('credit') }}">Подать заявку</a></p>
+<p>{{ _('credit_history.empty') }} <a href="{{ url_for('credit') }}">{{ _('credit_history.new_app') }}</a></p>
 {% else %}
 <div class="table-wrap">
   <table class="data-table credit-history-table">
     <thead>
       <tr>
-        <th>Дата</th>
-        <th>Имя</th>
-        <th>Сумма</th>
-        <th>Риск</th>
-        <th>%</th>
-        <th>Статус</th>
-        <th></th>
+        <th>{{ _('credit_history.th_date') }}</th>
+        <th>{{ _('credit_history.th_name') }}</th>
+        <th>{{ _('credit_history.th_amount') }}</th>
+        <th>{{ _('credit_history.th_risk') }}</th>
+        <th>{{ _('credit_history.th_pct') }}</th>
+        <th>{{ _('credit_history.th_status') }}</th>
+        <th aria-label="{{ _('credit_history.details') }}"></th>
       </tr>
     </thead>
     <tbody>
@@ -35,10 +35,10 @@
         <td>
           {% set st = a.status or 'pending' %}
           <span class="credit-status-badge credit-status-badge--{{ st }}">
-            {% if st == 'approved' %}Одобрено{% elif st == 'rejected' %}Отклонено{% else %}На рассмотрении{% endif %}
+            {% if st == 'approved' %}{{ _('credit_result.st_approved') }}{% elif st == 'rejected' %}{{ _('credit_result.st_rejected') }}{% else %}{{ _('credit_result.st_pending') }}{% endif %}
           </span>
         </td>
-        <td><a href="{{ url_for('credit_result', application_id=a.id) }}">Подробнее</a></td>
+        <td><a href="{{ url_for('credit_result', application_id=a.id) }}">{{ _('credit_history.details') }}</a></td>
       </tr>
       {% endfor %}
     </tbody>
@@ -46,5 +46,5 @@
 </div>
 {% endif %}
 
-<p style="margin-top:1.5rem;"><a href="{{ url_for('credit') }}">← Новая заявка</a></p>
+<p style="margin-top:1.5rem;"><a href="{{ url_for('credit') }}">{{ _('credit_history.back_new') }}</a></p>
 {% endblock %}

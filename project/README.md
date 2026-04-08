@@ -144,7 +144,38 @@ project/
 
 Требуется сессия (пользователь должен быть залогинен).
 
+## Локализация (ru / kk / en)
+
+- Базовые строки: `project/locales/<lang>.json`.
+- Строки страниц и flash-сообщений расширения: `project/locales/pages_<lang>.json` (подмешиваются в `i18n._load_file`).
+- Язык сессии: `POST /settings/lang` (JSON) или выбор в **Настройках**; шаблоны используют `{{ _('ключ') }}`.
+
+## Тесты
+
+Из корня репозитория (после `pip install -r requirements.txt`):
+
+```powershell
+python -m pytest -q
+```
+
+Конфиг: `pytest.ini`, тесты в `project/tests/`. В тестовом приложении `TESTING=True`, отдельная SQLite и отключён CSRF.
+
+## CI
+
+Workflow GitHub Actions: `.github/workflows/ci.yml` — установка зависимостей и `pytest`.
+
+## Безопасность (MVP → прод)
+
+- **CSRF:** `Flask-WTF` защищает POST-формы; в шаблонах — скрытое поле `csrf_token`, для `fetch` — заголовок `X-CSRFToken` (см. `base.html` и `window.csrfHeaders`).
+- **Сессия:** `SESSION_COOKIE_HTTPONLY`, `SameSite=Lax`; **Secure** включается при `FLASK_ENV=production` или `CRAFT_HUB_PRODUCTION=1`.
+- **Лимиты:** на `login` и `register` — `Flask-Limiter` (отключается при `TESTING`).
+- Секреты только в `.env`, не коммитьте реальный ключ.
+
+## Фоновые задачи и AI
+
+- Тяжёлые вызовы OpenAI выполняются синхронно в запросе; для высокой нагрузки обычно выносят в очередь (Celery / RQ и т.д.) — в MVP не реализовано.
+
 ## Важно
 
 - MVP не является финансовым продуктом: оценка кредита — демонстрация.
-- Для продакшена задайте надёжный `FLASK_SECRET_KEY` в `.env`.
+- Для продакшена задайте надёжный `FLASK_SECRET_KEY` в `.env` и включите HTTPS + переменные окружения из `.env.example`.

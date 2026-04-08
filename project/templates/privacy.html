@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ _('privacy.title') }} — AI Craft Hub{% endblock %}
+{% block content %}
+<div class="legal-page">
+  <h1 style="margin-top:0;">{{ _('privacy.title') }}</h1>
+  <p class="hint">{{ _('privacy.lead') }}</p>
+  <p>{{ _('privacy.p1') }}</p>
+  <p>{{ _('privacy.p2') }}</p>
+  <p class="hint" style="margin-top:1.5rem;"><a href="{{ url_for('index') }}">{{ _('legal.back_hub') }}</a></p>
+</div>
+{% endblock %}

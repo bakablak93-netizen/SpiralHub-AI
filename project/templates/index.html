@@ -1,23 +1,22 @@
 {% extends "base.html" %}
 {% from '_macros.html' import product_image %}
-{% block title %}Главная — AI Craft Hub{% endblock %}
+{% block title %}{{ _('home.title') }}{% endblock %}
 {% block content %}
 <section class="hero hero--compact">
-  <h1>Ремесло, экология и AI в одном маркетплейсе</h1>
+  <h1>{{ _('home.hero_title') }}</h1>
   <p>
-    Ищите товары с фильтрами и сортировкой, подбирайте лоты через AI, сохраняйте избранное
-    и переходите к витринам продавцов.
+    {{ _('home.hero_lead') }}
   </p>
   <div class="cta-row">
-    <a class="btn btn-ghost" href="{{ url_for('catalog') }}">Отдельная страница каталога</a>
+    <a class="btn btn-ghost" href="{{ url_for('catalog') }}">{{ _('home.catalog_link') }}</a>
     {% if not current_user %}
-      <a class="btn btn-primary" href="{{ url_for('register') }}">Присоединиться</a>
+      <a class="btn btn-primary" href="{{ url_for('register') }}">{{ _('home.join') }}</a>
     {% endif %}
   </div>
 </section>
 
-<h2 class="section-title">Рекомендуем сейчас</h2>
-<p class="hint">Короткая подборка из текущей выкладки.</p>
+<h2 class="section-title">{{ _('home.featured_title') }}</h2>
+<p class="hint">{{ _('home.featured_hint') }}</p>
 <div class="grid product-grid" style="margin-bottom:2rem;">
   {% for p in featured %}
     <article class="card storefront-product-card">
@@ -27,16 +26,16 @@
           <a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a>
           {% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">Eco</span>{% endif %}
         </h3>
-        <p class="meta">{{ p.category }} · {{ (sellers_by_id.get(p.seller_id).display_name or sellers_by_id.get(p.seller_id).email) if sellers_by_id.get(p.seller_id) else 'продавец' }}</p>
+        <p class="meta">{{ _('cat.' + p.category) }} · {{ (sellers_by_id.get(p.seller_id).display_name or sellers_by_id.get(p.seller_id).email) if sellers_by_id.get(p.seller_id) else _('home.seller_fallback') }}</p>
         <p class="price">{{ p.price | round(2) }} ₽</p>
         <div class="storefront-card-actions">
-          <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">Подробнее</a>
-          <a class="btn btn-ghost btn-sm" href="{{ url_for('checkout', product_id=p.id) }}">Купить</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">{{ _('home.details') }}</a>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('checkout', product_id=p.id) }}">{{ _('home.buy') }}</a>
         </div>
       </div>
     </article>
   {% else %}
-    <p class="hint">Пока нет товаров с фото — зайдите как продавец и добавьте лот.</p>
+    <p class="hint">{{ _('home.empty_featured') }}</p>
   {% endfor %}
 </div>
 
@@ -44,12 +43,11 @@
 {% include '_storefront_block.html' %}
 
 <div class="section-title" style="margin-top:2.5rem;">
-  <h2 style="font-size:1.15rem;">Демо для хакатона</h2>
+  <h2 style="font-size:1.15rem;">{{ _('home.demo_title') }}</h2>
   <p class="hint">
-    Покупатель: <strong>buyer@craft.demo</strong> / <strong>demo123</strong>.
-    Продавцы (пароль <strong>demo123</strong>): <strong>wood@demo.craft</strong>, <strong>garden@demo.craft</strong>,
-    <strong>clay@demo.craft</strong> и др. Раздел <a href="{{ url_for('sellers_list') }}">Продавцы</a>.
-    Без <code>OPENAI_API_KEY</code> подбор AI использует демо-логику.
+    {{ _('home.demo_intro') }}
+    <a href="{{ url_for('sellers_list') }}">{{ _('nav.sellers') }}</a>.
+    {{ _('home.demo_outro') }}
   </p>
 </div>
 {% endblock %}

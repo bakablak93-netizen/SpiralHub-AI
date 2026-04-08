@@ -1,118 +1,115 @@
 {% extends "base.html" %}
-{% block title %}Профиль — AI Craft Hub{% endblock %}
+{% block title %}{{ _('profile.title') }}{% endblock %}
 {% block content %}
 <div class="profile-hero">
-  <h1 style="margin:0 0 0.35rem;">Личный кабинет</h1>
-  <p class="hint" style="margin:0;">AI Craft Hub — товары, аналитика и микрокредиты для мастеров и самозанятых</p>
+  <h1 style="margin:0 0 0.35rem;">{{ _('profile.hero_title') }}</h1>
+  <p class="hint" style="margin:0;">{{ _('profile.hero_lead') }}</p>
+  <p style="margin:0.75rem 0 0;"><a class="btn btn-ghost btn-sm" href="{{ url_for('user_settings') }}">{{ _('nav.settings') }}</a></p>
 </div>
 
 <div class="profile-grid">
-  {# --- Карточка пользователя --- #}
   <section class="profile-card profile-card--user">
-    <h2 class="profile-card__title">Профиль</h2>
+    <h2 class="profile-card__title">{{ _('profile.card_user') }}</h2>
     <div class="profile-avatar" aria-hidden="true">{{ (current_user.display_name or current_user.email or '?')[0]|upper }}</div>
     <dl class="profile-dl">
-      <dt>Имя</dt>
+      <dt>{{ _('profile.name') }}</dt>
       <dd>{{ current_user.display_name or '—' }}</dd>
-      <dt>Email</dt>
+      <dt>{{ _('profile.email') }}</dt>
       <dd>{{ current_user.email }}</dd>
-      <dt>Роль</dt>
+      <dt>{{ _('profile.role') }}</dt>
       <dd><span class="role-pill">{{ role_label }}</span></dd>
-      <dt>Регистрация</dt>
+      <dt>{{ _('profile.registered') }}</dt>
       <dd>{{ current_user.created_at.strftime('%d.%m.%Y') if current_user.created_at else '—' }}</dd>
     </dl>
     <div class="profile-actions" style="margin-top:1rem;">
-      <a class="btn btn-primary btn-sm" href="{{ url_for('profile_edit') }}">Изменить профиль</a>
-      <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">Выйти</a>
-      <a class="btn btn-ghost btn-sm" href="{{ url_for('switch_account') }}">Сменить аккаунт</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('profile_edit') }}">{{ _('profile.edit_profile') }}</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">{{ _('profile.logout') }}</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('switch_account') }}">{{ _('profile.switch_account') }}</a>
     </div>
-    <p class="hint" style="margin:0.75rem 0 0;">«Сменить аккаунт» завершит сессию и откроет вход.</p>
+    <p class="hint" style="margin:0.75rem 0 0;">{{ _('profile.switch_hint') }}</p>
   </section>
 
-  {# --- Статистика (для продавца; у покупателя — подсказка) --- #}
   <section class="profile-card profile-card--stats">
-    <h2 class="profile-card__title">Статистика</h2>
+    <h2 class="profile-card__title">{{ _('profile.dash_stats') }}</h2>
     {% if current_user.role == 'seller' and profile_stats %}
       <div class="stat-row">
         <div class="stat-tile">
           <span class="stat-tile__val">{{ profile_stats.product_count }}</span>
-          <span class="stat-tile__lbl">товаров в кабинете</span>
+          <span class="stat-tile__lbl">{{ _('profile.stat_products_office') }}</span>
         </div>
         <div class="stat-tile">
           <span class="stat-tile__val">{{ profile_stats.sales_count }}</span>
-          <span class="stat-tile__lbl">продаж (оценка, MVP)</span>
+          <span class="stat-tile__lbl">{{ _('profile.stat_sales') }}</span>
         </div>
         <div class="stat-tile">
           <span class="stat-tile__val">{{ profile_stats.estimated_revenue | round(0) | int }} ₽</span>
-          <span class="stat-tile__lbl">примерный доход (демо)</span>
+          <span class="stat-tile__lbl">{{ _('profile.stat_revenue_demo') }}</span>
         </div>
       </div>
-      <p class="hint" style="margin:0.75rem 0 0;">Цифры условные для демонстрации; позже можно подключить реальные заказы.</p>
+      <p class="hint" style="margin:0.75rem 0 0;">{{ _('profile.stats_cond_hint') }}</p>
     {% else %}
-      <p class="hint" style="margin:0;">Статистика продаж доступна в роли продавца. Зарегистрируйтесь как продавец или смените роль в новом аккаунте.</p>
+      <p class="hint" style="margin:0;">{{ _('profile.stats_buyer_only') }}</p>
     {% endif %}
   </section>
 
-  {# --- ESG / eco --- #}
   {% if current_user.role == 'seller' %}
   <section class="profile-card profile-card--eco">
-    <h2 class="profile-card__title">ESG / Eco</h2>
+    <h2 class="profile-card__title">{{ _('profile.eco_card') }}</h2>
     <p style="margin:0 0 0.5rem;">
-      Доля eco-товаров: <strong>{{ eco_percent }}%</strong>
-      <span class="hint">({{ eco_count }} из {{ my_products|length }} с флагом eco или категорией eco)</span>
+      {{ _('profile.eco_share_profile') }} <strong>{{ eco_percent }}%</strong>
+      <span class="hint">({{ eco_count }} {{ _('profile.eco_of') }} {{ my_products|length }} {{ _('profile.eco_with_flag') }})</span>
     </p>
-    <p class="hint" style="margin:0;">Отмечайте экологичные позиции при <a href="{{ url_for('add_product') }}">добавлении</a> или <a href="{{ url_for('profile') }}#my-products">редактировании</a> товара.</p>
+    <p class="hint" style="margin:0;">{{ _('profile.eco_edit_hint') }} <a href="{{ url_for('add_product') }}">{{ _('profile.add_product') }}</a> · <a href="{{ url_for('profile') }}#my-products">{{ _('profile.edit') }}</a></p>
   </section>
   {% endif %}
 
-  {# --- AI рекомендации --- #}
   <section class="profile-card profile-card--ai" id="ai-block">
-    <h2 class="profile-card__title">AI-рекомендации</h2>
-    <p class="hint" style="margin-top:0;">Советы по продажам, ценам и идеям новых SKU — по вашему текущему каталогу.</p>
+    <h2 class="profile-card__title">{{ _('profile.ai_dash_title') }}</h2>
+    <p class="hint" style="margin-top:0;">{{ _('profile.ai_dash_lead') }}</p>
     <form method="post" action="{{ url_for('ai_advice') }}" style="margin-bottom:1rem;">
-      <button type="submit" class="btn btn-primary btn-sm">Получить совет от AI</button>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-primary btn-sm">{{ _('profile.ai_get_btn') }}</button>
     </form>
     {% if ai_advice %}
       <div class="ai-advice-cols">
         <div class="ai-advice-block">
-          <h3 class="ai-advice-block__h">Продажи</h3>
+          <h3 class="ai-advice-block__h">{{ _('profile.ai_h_sales') }}</h3>
           <div class="ai-advice-block__body">{{ ai_advice.sales_tips | e | replace('\n', '<br>') | safe }}</div>
         </div>
         <div class="ai-advice-block">
-          <h3 class="ai-advice-block__h">Цены</h3>
+          <h3 class="ai-advice-block__h">{{ _('profile.ai_h_prices') }}</h3>
           <div class="ai-advice-block__body">{{ ai_advice.pricing_tips | e | replace('\n', '<br>') | safe }}</div>
         </div>
         <div class="ai-advice-block">
-          <h3 class="ai-advice-block__h">Новые товары</h3>
+          <h3 class="ai-advice-block__h">{{ _('profile.ai_h_new') }}</h3>
           <div class="ai-advice-block__body">{{ ai_advice.new_product_ideas | e | replace('\n', '<br>') | safe }}</div>
         </div>
       </div>
     {% else %}
-      <p class="hint" style="margin:0;">Нажмите кнопку выше — текст появится здесь (сессия, до выхода из аккаунта).</p>
+      <p class="hint" style="margin:0;">{{ _('profile.ai_sess_hint') }}</p>
     {% endif %}
   </section>
 
-  {# --- Микрокредит --- #}
   <section class="profile-card profile-card--credit">
-    <h2 class="profile-card__title">Микрокредит</h2>
-    <p class="hint" style="margin-top:0;">Формула MVP + OpenAI: риск, вероятность, рекомендуемая сумма, статус заявки (pending / approved / rejected).</p>
+    <h2 class="profile-card__title">{{ _('profile.buyer_credit_title') }}</h2>
+    <p class="hint" style="margin-top:0;">{{ _('profile.buyer_credit_text') }}</p>
     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;">
-      <a class="btn btn-primary btn-sm" href="{{ url_for('credit') }}">Подать заявку</a>
-      <a class="btn btn-ghost btn-sm" href="{{ url_for('credit_history') }}">История заявок</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('credit') }}">{{ _('profile.to_credit') }}</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('credit_history') }}">{{ _('profile.credit_history') }}</a>
     </div>
     {% if credits %}
-      <h3 class="subsection-title">Последние заявки</h3>
+      <h3 class="subsection-title">{{ _('profile.credit_last_apps') }}</h3>
       <ul class="credit-mini-list">
         {% for c in credits %}
           <li>
             {{ c.created_at.strftime('%d.%m.%Y') }} —
             {% set st = c.status or 'pending' %}
             <span class="credit-status-badge credit-status-badge--{{ st }}" style="font-size:0.65rem;vertical-align:middle;">
-              {% if st == 'approved' %}одобрено{% elif st == 'rejected' %}отклонено{% else %}в работе{% endif %}
+              {% if st == 'approved' %}{{ _('profile.credit_mini_approved') }}{% elif st == 'rejected' %}{{ _('profile.credit_mini_rejected') }}{% else %}{{ _('profile.credit_mini_pending') }}{% endif %}
             </span>
-            · риск <span class="risk-{{ c.risk_level or 'medium' }}">{{ c.risk_level or '—' }}</span>,
+            · {{ _('profile.at_risk') }} <span class="risk-{{ c.risk_level or 'medium' }}">{{ c.risk_level or '—' }}</span>,
             {{ c.approval_probability or '—' }}%
-            · <a href="{{ url_for('credit_result', application_id=c.id) }}">результат</a>
+            · <a href="{{ url_for('credit_result', application_id=c.id) }}">{{ _('profile.credit_res_link') }}</a>
           </li>
         {% endfor %}
       </ul>
@@ -123,19 +120,19 @@
 {% if current_user.role == 'seller' %}
 <section class="profile-card profile-card--wide" id="my-products">
   <div class="profile-card__head">
-    <h2 class="profile-card__title" style="margin:0;">Мои товары</h2>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('add_product') }}">Добавить товар</a>
+    <h2 class="profile-card__title" style="margin:0;">{{ _('profile.products_title') }}</h2>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('add_product') }}">{{ _('profile.add_product') }}</a>
   </div>
-  <p class="hint"><a href="{{ url_for('seller_public', sid=current_user.id) }}">Публичная витрина</a></p>
+  <p class="hint"><a href="{{ url_for('seller_public', sid=current_user.id) }}">{{ _('profile.public_store') }}</a></p>
   {% if my_products %}
     <div class="table-wrap">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Название</th>
-            <th>Цена</th>
-            <th>Категория</th>
-            <th>Eco</th>
+            <th>{{ _('profile.table_title') }}</th>
+            <th>{{ _('profile.table_price') }}</th>
+            <th>{{ _('profile.table_cat') }}</th>
+            <th>{{ _('profile.table_eco') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -147,13 +144,14 @@
                 <div class="hint" style="margin:0.25rem 0 0;font-weight:400;">{{ (p.description or '')[:80] }}{% if (p.description or '')|length > 80 %}…{% endif %}</div>
               </td>
               <td>{{ p.price | round(2) }} ₽</td>
-              <td><code>{{ p.category }}</code></td>
+              <td><code>{{ _('cat.' + p.category) }}</code></td>
               <td>{% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">eco</span>{% else %}—{% endif %}</td>
               <td class="data-table__actions">
-                <a class="btn btn-ghost btn-sm" href="{{ url_for('product_edit', pid=p.id) }}">Редактировать</a>
-                <form method="post" action="{{ url_for('delete_product') }}" class="inline-form-danger" onsubmit="return confirm('Удалить этот товар?');">
+                <a class="btn btn-ghost btn-sm" href="{{ url_for('product_edit', pid=p.id) }}">{{ _('profile.edit') }}</a>
+                <form method="post" action="{{ url_for('delete_product') }}" class="inline-form-danger" onsubmit="return confirm({{ _('profile.confirm_delete_product')|tojson }});">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="product_id" value="{{ p.id }}">
-                  <button type="submit" class="btn btn-ghost btn-sm" style="border-color:var(--danger);color:var(--danger);">Удалить</button>
+                  <button type="submit" class="btn btn-ghost btn-sm" style="border-color:var(--danger);color:var(--danger);">{{ _('profile.delete') }}</button>
                 </form>
               </td>
             </tr>
@@ -161,28 +159,29 @@
         </tbody>
       </table>
     </div>
-    <div class="product-cards-list" aria-label="Товары карточками (мобильный вид)">
+    <div class="product-cards-list" aria-label="{{ _('profile.products_cards_aria') }}">
       {% for p in my_products %}
         <article class="product-card-m">
           <h3 class="product-card-m__title"><a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a></h3>
           <div class="product-card-m__meta">
             <span><strong>{{ p.price | round(2) }} ₽</strong></span>
-            <span><code>{{ p.category }}</code></span>
+            <span><code>{{ _('cat.' + p.category) }}</code></span>
             {% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">eco</span>{% endif %}
           </div>
           <p class="hint" style="margin:0 0 0.75rem;">{{ (p.description or '')[:120] }}{% if (p.description or '')|length > 120 %}…{% endif %}</p>
           <div class="product-card-m__actions">
-            <a class="btn btn-ghost btn-sm" href="{{ url_for('product_edit', pid=p.id) }}">Редактировать</a>
-            <form method="post" action="{{ url_for('delete_product') }}" onsubmit="return confirm('Удалить этот товар?');">
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('product_edit', pid=p.id) }}">{{ _('profile.edit') }}</a>
+            <form method="post" action="{{ url_for('delete_product') }}" onsubmit="return confirm({{ _('profile.confirm_delete_product')|tojson }});">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="product_id" value="{{ p.id }}">
-              <button type="submit" class="btn btn-ghost btn-sm" style="border-color:var(--danger);color:var(--danger);">Удалить</button>
+              <button type="submit" class="btn btn-ghost btn-sm" style="border-color:var(--danger);color:var(--danger);">{{ _('profile.delete') }}</button>
             </form>
           </div>
         </article>
       {% endfor %}
     </div>
   {% else %}
-    <p class="hint">Пока нет товаров. <a href="{{ url_for('add_product') }}">Добавить первый</a></p>
+    <p class="hint">{{ _('profile.no_products') }} <a href="{{ url_for('add_product') }}">{{ _('profile.add_first') }}</a></p>
   {% endif %}
 </section>
 {% endif %}

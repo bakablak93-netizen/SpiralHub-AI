@@ -10,55 +10,56 @@
       {% if product.is_eco or product.category == 'eco' %}<span class="tag-eco">Eco</span>{% endif %}
     </h1>
     <p class="meta">
-      Категория: <strong>{{ product.category }}</strong>
+      {{ _('product.page.category') }} <strong>{{ _('cat.' + product.category) }}</strong>
       {% if seller %}
-        · продавец:
+        · {{ _('product.page.seller') }}
         <a href="{{ url_for('seller_public', sid=seller.id) }}"><strong>{{ seller.display_name or seller.email }}</strong></a>
       {% endif %}
     </p>
     <p class="price" style="font-size:1.5rem;">{{ product.price | round(2) }} ₽</p>
 
     <div class="eco-score-box card-panel" style="margin:1rem 0;padding:1rem;">
-      <h2 class="panel-title" style="font-size:0.95rem;margin-bottom:0.35rem;">Eco / ESG оценка (MVP)</h2>
-      <p style="margin:0;font-weight:600;">{{ eco_score_label }}</p>
-      <p class="hint" style="margin:0.5rem 0 0;">{{ eco_score_hint }}</p>
+      <h2 class="panel-title" style="font-size:0.95rem;margin-bottom:0.35rem;">{{ _('product.page.eco_panel') }}</h2>
+      <p style="margin:0;font-weight:600;">{{ _(eco_i18n.label) }}</p>
+      <p class="hint" style="margin:0.5rem 0 0;">{{ _(eco_i18n.hint) }}</p>
     </div>
 
     <p>{{ product.description }}</p>
 
     <div class="product-actions-row">
-      <a class="btn btn-primary" href="{{ url_for('checkout', product_id=product.id) }}">Купить</a>
-      <a class="btn btn-ghost" href="{{ url_for('seller_public', sid=seller.id) if seller else url_for('sellers_list') }}">К продавцу</a>
+      <a class="btn btn-primary" href="{{ url_for('checkout', product_id=product.id) }}">{{ _('product.page.buy') }}</a>
+      <a class="btn btn-ghost" href="{{ url_for('seller_public', sid=seller.id) if seller else url_for('sellers_list') }}">{{ _('product.page.to_seller') }}</a>
       {% if current_user %}
         <form method="post" action="{{ url_for('favorite_product') }}" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="product_id" value="{{ product.id }}">
           <input type="hidden" name="next" value="{{ request.full_path }}">
           {% if is_favorited %}
             <input type="hidden" name="action" value="remove">
-            <button type="submit" class="btn btn-ghost">Убрать из избранного</button>
+            <button type="submit" class="btn btn-ghost">{{ _('product.page.fav_remove') }}</button>
           {% else %}
             <input type="hidden" name="action" value="add">
-            <button type="submit" class="btn btn-ghost">В избранное</button>
+            <button type="submit" class="btn btn-ghost">{{ _('product.page.fav_add') }}</button>
           {% endif %}
         </form>
       {% else %}
-        <a class="btn btn-ghost" href="{{ url_for('login', next=request.full_path) }}">В избранное</a>
+        <a class="btn btn-ghost" href="{{ url_for('login', next=request.full_path) }}">{{ _('product.page.fav_add') }}</a>
       {% endif %}
     </div>
 
     {% if current_user %}
       <div style="margin-top:1.25rem;">
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-eco">AI: рекомендации по экологичности</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-eco">{{ _('product.page.eco_ai') }}</button>
         <pre id="eco-out" class="hint" style="white-space:pre-wrap;margin-top:0.75rem;display:none;"></pre>
       </div>
     {% else %}
-      <p class="hint"><a href="{{ url_for('login') }}">Войдите</a>, чтобы запросить AI eco-советы.</p>
+      <p class="hint"><a href="{{ url_for('login') }}">{{ _('product.page.login_link') }}</a>, {{ _('product.page.login_eco') }}</p>
     {% endif %}
   </div>
 </div>
 
 {% if similar_products %}
-<h2 class="section-title">Похожие товары</h2>
+<h2 class="section-title">{{ _('product.page.similar') }}</h2>
 <div class="grid">
   {% for sp in similar_products %}
     {% set ss = similar_sellers.get(sp.seller_id) %}
@@ -66,7 +67,7 @@
       {{ product_image(sp) }}
       <div class="card-body">
         <h3 style="margin-top:0;">{{ sp.title }}{% if sp.is_eco %} <span class="tag-eco">Eco</span>{% endif %}</h3>
-        <p class="meta">{{ sp.category }}{% if ss %} · {{ ss.display_name or ss.email }}{% endif %}</p>
+        <p class="meta">{{ _('cat.' + sp.category) }}{% if ss %} · {{ ss.display_name or ss.email }}{% endif %}</p>
         <p class="price">{{ sp.price | round(2) }} ₽</p>
       </div>
     </a>
@@ -74,21 +75,21 @@
 </div>
 {% endif %}
 
-<p style="margin-top:2rem;"><a href="{{ url_for('catalog') }}">← В каталог</a> · <a href="{{ url_for('index') }}">Главная</a></p>
+<p style="margin-top:2rem;"><a href="{{ url_for('catalog') }}">{{ _('product.page.footer_nav') }}</a> · <a href="{{ url_for('index') }}">{{ _('product.page.home_link') }}</a></p>
 
 <script>
 {% if current_user %}
 document.getElementById('btn-eco').addEventListener('click', async function() {
   const out = document.getElementById('eco-out');
   out.style.display = 'block';
-  out.textContent = 'Загрузка…';
+  out.textContent = {{ _('common.loading')|tojson }};
   const r = await fetch('{{ url_for("api_eco") }}', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: window.csrfHeaders({'Content-Type': 'application/json'}),
     body: JSON.stringify({ product_id: {{ product.id }} })
   });
   const j = await r.json();
-  out.textContent = j.tips || j.error || 'Ошибка';
+  out.textContent = j.tips || j.error || {{ _('common.error')|tojson }};
 });
 {% endif %}
 </script>

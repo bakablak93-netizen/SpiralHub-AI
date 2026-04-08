@@ -238,10 +238,10 @@ def _save_product_image_file(storage) -> tuple[str | None, str | None]:
         return None, None
     raw_name = secure_filename(storage.filename)
     if not _allowed_image_filename(raw_name):
-        return None, "Допустимы только изображения: PNG, JPG, JPEG, WEBP."
+        return None, "error.image_invalid"
     data = storage.read()
     if len(data) > MAX_IMAGE_BYTES:
-        return None, "Размер фото не больше 5 МБ."
+        return None, "error.image_too_large"
     ext = raw_name.rsplit(".", 1)[1].lower()
     fname = f"{uuid.uuid4().hex}.{ext}"
     os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -263,6 +263,7 @@ from ai import (
     seller_dashboard_advice,
 )
 from credit import CREDIT_CATEGORIES, evaluate_application
+from i18n import default_user_prefs, merged_prefs, normalize_locale, translate
 from models import (
     CATEGORIES,
     CreditApplication,
@@ -275,15 +276,41 @@ from models import (
 )
 
 
-def create_app() -> Flask:
+def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(
         __name__,
         template_folder=os.path.join(BASE_DIR, "templates"),
         static_folder=os.path.join(BASE_DIR, "static"),
     )
-    app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY") or "dev-secret-change-me"
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database.db")
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    db_path = os.path.join(BASE_DIR, "database.db")
+    _is_production = (
+        os.environ.get("FLASK_ENV", "").lower() == "production"
+        or os.environ.get("CRAFT_HUB_PRODUCTION", "").strip() == "1"
+    )
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get("FLASK_SECRET_KEY") or "dev-secret-change-me",
+        SQLALCHEMY_DATABASE_URI=f"sqlite:///{db_path}",
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=_is_production,
+        WTF_CSRF_TIME_LIMIT=None,
+    )
+    if test_config:
+        app.config.update(test_config)
+
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    from flask_wtf.csrf import CSRFProtect
+
+    limiter = Limiter(
+        key_func=get_remote_address,
+        app=app,
+        default_limits=["500 per minute"],
+        storage_uri="memory://",
+        enabled=not app.config.get("TESTING", False),
+    )
+    CSRFProtect(app)
 
     db.init_app(app)
 
@@ -291,11 +318,14 @@ def create_app() -> Flask:
     def static_file_exists(rel):
         return _static_file_exists(rel) if rel else False
 
+    def _t(key: str, **kwargs) -> str:
+        return translate(session.get("locale"), key, **kwargs)
+
     def login_required(f):
         @wraps(f)
         def decorated(*args, **kwargs):
             if "user_id" not in session:
-                flash("Войдите в аккаунт.", "warning")
+                flash(_t("flash.login_required"), "warning")
                 return redirect(url_for("login", next=request.path))
             return f(*args, **kwargs)
 
@@ -305,11 +335,11 @@ def create_app() -> Flask:
         @wraps(f)
         def decorated(*args, **kwargs):
             if "user_id" not in session:
-                flash("Войдите как продавец.", "warning")
+                flash(_t("flash.seller_login"), "warning")
                 return redirect(url_for("login"))
             u = db.session.get(User, session["user_id"])
             if not u or u.role != "seller":
-                flash("Нужна роль продавца.", "danger")
+                flash(_t("flash.seller_role"), "danger")
                 return redirect(url_for("profile"))
             return f(*args, **kwargs)
 
@@ -319,7 +349,20 @@ def create_app() -> Flask:
     def inject_globals():
         uid = session.get("user_id")
         user = db.session.get(User, uid) if uid else None
-        return dict(current_user=user, demo_mode=is_demo_mode(), categories=CATEGORIES)
+        loc = normalize_locale(session.get("locale"))
+        prefs = merged_prefs(session.get("user_prefs"))
+
+        def _(key: str, **kwargs):
+            return translate(loc, key, **kwargs)
+
+        return dict(
+            current_user=user,
+            demo_mode=is_demo_mode(),
+            categories=CATEGORIES,
+            _=_,
+            locale=loc,
+            user_prefs=prefs,
+        )
 
     def _storefront_bundle():
         """Общий контекст для главной и /catalog: поиск, фильтры, сортировка, AI-порядок."""
@@ -395,7 +438,7 @@ def create_app() -> Flask:
         if request.args.get("clear_ai") == "1":
             session.pop("ai_product_ranked_ids", None)
             session.pop("ai_product_explanation", None)
-            flash("Подбор товаров AI сброшен.", "info")
+            flash(_t("flash.ai_products_reset"), "info")
             return redirect(url_for("index"))
         return render_template("index.html", **_storefront_bundle())
 
@@ -405,7 +448,7 @@ def create_app() -> Flask:
         if request.args.get("clear_ai") == "1":
             session.pop("ai_seller_ranked_ids", None)
             session.pop("ai_seller_explanation", None)
-            flash("Подбор AI сброшен.", "info")
+            flash(_t("flash.ai_sellers_reset"), "info")
             return redirect(url_for("sellers_list"))
 
         q = (request.args.get("q") or "").strip()
@@ -454,7 +497,7 @@ def create_app() -> Flask:
         """AI ранжирует продавцов под текстовый запрос; результат — порядок на /sellers?ai=1."""
         query = (request.form.get("query") or "").strip()
         if len(query) < 2:
-            flash("Опишите запрос чуть подробнее (от 2 символов).", "warning")
+            flash(_t("flash.query_short_sellers"), "warning")
             return redirect(url_for("sellers_list"))
         cards = _all_seller_cards()
         catalog = [
@@ -472,7 +515,7 @@ def create_app() -> Flask:
         session["ai_seller_ranked_ids"] = result.get("ranked_ids", [])
         session["ai_seller_explanation"] = (result.get("explanation") or "")[:2000]
         session.modified = True
-        flash("Подбор продавцов обновлён — смотрите порядок карточек ниже.", "success")
+        flash(_t("flash.sellers_rank_updated"), "success")
         return redirect(url_for("sellers_list", ai=1))
 
     @app.route("/favorite_seller", methods=["POST"])
@@ -483,34 +526,34 @@ def create_app() -> Flask:
         action = (request.form.get("action") or "toggle").strip().lower()
         nxt = (request.form.get("next") or "").strip() or request.referrer or url_for("sellers_list")
         if not sid:
-            flash("Не указан продавец.", "danger")
+            flash(_t("flash.seller_missing"), "danger")
             return redirect(nxt)
         seller = db.session.get(User, sid)
         if not seller or seller.role != "seller":
-            flash("Продавец не найден.", "danger")
+            flash(_t("flash.seller_not_found"), "danger")
             return redirect(nxt)
         uid = session["user_id"]
         if seller.id == uid:
-            flash("Нельзя добавить себя в избранное.", "warning")
+            flash(_t("flash.cannot_favorite_self"), "warning")
             return redirect(nxt)
         row = FavoriteSeller.query.filter_by(user_id=uid, seller_id=sid).first()
         if action == "remove" or (action == "toggle" and row):
             if row:
                 db.session.delete(row)
                 db.session.commit()
-                flash("Удалено из избранного.", "info")
+                flash(_t("flash.removed_fav_seller"), "info")
         else:
             if not row:
                 db.session.add(FavoriteSeller(user_id=uid, seller_id=sid))
                 db.session.commit()
-                flash("В избранном.", "success")
+                flash(_t("flash.in_favorites_seller"), "success")
         return redirect(nxt)
 
     @app.route("/seller/<int:sid>")
     def seller_public(sid):
         u = db.session.get(User, sid)
         if not u or u.role != "seller":
-            flash("Продавец не найден.", "warning")
+            flash(_t("flash.seller_not_found_warn"), "warning")
             return redirect(url_for("sellers_list"))
         items = _seller_showcase_products(u)
         _, eco_pct = _eco_stats(items)
@@ -545,7 +588,7 @@ def create_app() -> Flask:
         """AI-обзор витрины для покупателя (сильные/слабые стороны, рост)."""
         u = db.session.get(User, sid)
         if not u or u.role != "seller":
-            flash("Продавец не найден.", "warning")
+            flash(_t("flash.seller_not_found_warn"), "warning")
             return redirect(url_for("sellers_list"))
         items = _seller_showcase_products(u)
         _, eco_pct = _eco_stats(items)
@@ -558,9 +601,10 @@ def create_app() -> Flask:
         )
         session["seller_profile_analysis"] = {"seller_id": sid, "data": data}
         session.modified = True
-        flash("Анализ продавца готов.", "success")
+        flash(_t("flash.seller_analysis_ready"), "success")
         return redirect(url_for("seller_public", sid=sid))
 
+    @limiter.limit("12 per minute")
     @app.route("/register", methods=["GET", "POST"])
     def register():
         if request.method == "POST":
@@ -571,20 +615,21 @@ def create_app() -> Flask:
             if role not in ("buyer", "seller"):
                 role = "buyer"
             if not email or not password:
-                flash("Укажите email и пароль.", "danger")
+                flash(_t("flash.fill_email_password"), "danger")
                 return render_template("register.html")
             if User.query.filter_by(email=email).first():
-                flash("Такой email уже зарегистрирован.", "danger")
+                flash(_t("flash.email_taken"), "danger")
                 return render_template("register.html")
             u = User(email=email, role=role, display_name=name or None)
             u.set_password(password)
             db.session.add(u)
             db.session.commit()
             session["user_id"] = u.id
-            flash("Добро пожаловать в AI Craft Hub!", "success")
+            flash(_t("flash.welcome"), "success")
             return redirect(url_for("index"))
         return render_template("register.html")
 
+    @limiter.limit("20 per minute")
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if request.method == "POST":
@@ -593,10 +638,10 @@ def create_app() -> Flask:
             u = User.query.filter_by(email=email).first()
             if u and u.check_password(password):
                 session["user_id"] = u.id
-                flash("Вы вошли в систему.", "success")
+                flash(_t("flash.logged_in"), "success")
                 nxt = request.args.get("next") or url_for("index")
                 return redirect(nxt)
-            flash("Неверный email или пароль.", "danger")
+            flash(_t("flash.bad_credentials"), "danger")
         return render_template("login.html")
 
     @app.route("/logout")
@@ -606,7 +651,7 @@ def create_app() -> Flask:
         session.pop("profile_ai_advice", None)
         session.pop("ai_product_ranked_ids", None)
         session.pop("ai_product_explanation", None)
-        flash("Вы вышли.", "info")
+        flash(_t("flash.logged_out"), "info")
         return redirect(url_for("index"))
 
     @app.route("/catalog")
@@ -614,7 +659,7 @@ def create_app() -> Flask:
         if request.args.get("clear_ai") == "1":
             session.pop("ai_product_ranked_ids", None)
             session.pop("ai_product_explanation", None)
-            flash("Подбор товаров AI сброшен.", "info")
+            flash(_t("flash.ai_products_reset"), "info")
             return redirect(url_for("catalog"))
         return render_template("catalog.html", **_storefront_bundle())
 
@@ -623,7 +668,7 @@ def create_app() -> Flask:
         """AI подбирает товары под запрос; порядок на главной/каталоге с ?ai=1."""
         query = (request.form.get("query") or "").strip()
         if len(query) < 2:
-            flash("Опишите запрос подлиннее (от 2 символов).", "warning")
+            flash(_t("flash.query_short_products"), "warning")
             return redirect(request.referrer or url_for("index"))
         raw = (
             Product.query.filter(Product.image_filename.isnot(None))
@@ -651,7 +696,7 @@ def create_app() -> Flask:
         session["ai_product_ranked_ids"] = result.get("ranked_ids", [])
         session["ai_product_explanation"] = (result.get("explanation") or "")[:2000]
         session.modified = True
-        flash("Подбор товаров обновлён.", "success")
+        flash(_t("flash.products_rank_updated"), "success")
         if (request.form.get("source") or "").strip() == "catalog":
             return redirect(url_for("catalog", ai=1))
         return redirect(url_for("index", ai=1))
@@ -664,11 +709,11 @@ def create_app() -> Flask:
         action = (request.form.get("action") or "toggle").strip().lower()
         nxt = (request.form.get("next") or "").strip() or request.referrer or url_for("index")
         if not pid:
-            flash("Не указан товар.", "danger")
+            flash(_t("flash.product_missing"), "danger")
             return redirect(nxt)
         product = db.session.get(Product, pid)
         if not product:
-            flash("Товар не найден.", "danger")
+            flash(_t("flash.product_not_found"), "danger")
             return redirect(nxt)
         uid = session["user_id"]
         row = FavoriteProduct.query.filter_by(user_id=uid, product_id=pid).first()
@@ -676,12 +721,12 @@ def create_app() -> Flask:
             if row:
                 db.session.delete(row)
                 db.session.commit()
-                flash("Убрано из избранного.", "info")
+                flash(_t("flash.removed_fav_product"), "info")
         else:
             if not row:
                 db.session.add(FavoriteProduct(user_id=uid, product_id=pid))
                 db.session.commit()
-                flash("В избранном.", "success")
+                flash(_t("flash.in_favorites_product"), "success")
         return redirect(nxt)
 
     @app.route("/favorites")
@@ -715,7 +760,7 @@ def create_app() -> Flask:
     def product_detail(pid):
         p = db.session.get(Product, pid)
         if not p:
-            flash("Товар не найден.", "warning")
+            flash(_t("flash.product_not_found_warn"), "warning")
             return redirect(url_for("index"))
         seller = db.session.get(User, p.seller_id)
         similar_q = (
@@ -741,14 +786,15 @@ def create_app() -> Flask:
             )
 
         if p.is_eco or p.category == "eco":
-            eco_score_label = "Высокий eco / ESG акцент"
-            eco_score_hint = "Товар отмечен как экологичный или в категории eco — упаковка и логистика уточняйте у продавца."
+            eco_tier = "high"
         elif p.category in ("agro", "bio"):
-            eco_score_label = "Средний (ниша agro / bio)"
-            eco_score_hint = "Связано с продуктами и природой; уточняйте сертификаты и происхождение у мастерской."
+            eco_tier = "mid"
         else:
-            eco_score_label = "Базовая карточка"
-            eco_score_hint = "Стандартный лот handmade; eco-практики зависят от мастера — спросите в переписке."
+            eco_tier = "base"
+        eco_i18n = {
+            "label": f"product.eco.{eco_tier}_label",
+            "hint": f"product.eco.{eco_tier}_hint",
+        }
 
         return render_template(
             "product.html",
@@ -757,8 +803,7 @@ def create_app() -> Flask:
             similar_products=similar,
             similar_sellers=similar_sellers,
             is_favorited=is_favorited,
-            eco_score_label=eco_score_label,
-            eco_score_hint=eco_score_hint,
+            eco_i18n=eco_i18n,
         )
 
     @app.route("/api/ai/purchase-advice", methods=["POST"])
@@ -769,10 +814,10 @@ def create_app() -> Flask:
         try:
             pid = int(pid)
         except (TypeError, ValueError):
-            return jsonify({"error": "product_id required"}), 400
+            return jsonify({"error": _t("error.api.product_id")}), 400
         p = db.session.get(Product, pid)
         if not p:
-            return jsonify({"error": "not found"}), 404
+            return jsonify({"error": _t("error.api.not_found")}), 404
         seller = db.session.get(User, p.seller_id)
         sn = (seller.display_name or seller.email) if seller else ""
         adv = purchase_advice_for_product(
@@ -790,12 +835,12 @@ def create_app() -> Flask:
         """Оформление заказа: товар, количество, контакты; имитация оплаты → completed."""
         p = db.session.get(Product, product_id)
         if not p:
-            flash("Товар не найден.", "warning")
+            flash(_t("flash.product_not_found_warn"), "warning")
             return redirect(url_for("index"))
         seller = db.session.get(User, p.seller_id)
         uid = session.get("user_id")
         if uid and uid == p.seller_id:
-            flash("Нельзя оформить заказ на собственный товар.", "danger")
+            flash(_t("flash.checkout_own_product"), "danger")
             return redirect(url_for("product_detail", pid=p.id))
 
         if request.method == "POST":
@@ -807,16 +852,16 @@ def create_app() -> Flask:
             except ValueError:
                 qty = 0
             if not name or len(name) < 2:
-                flash("Укажите имя.", "danger")
+                flash(_t("flash.checkout_name"), "danger")
                 return render_template("checkout.html", product=p, seller=seller, quantity=max(1, qty))
             if len(phone) < 8:
-                flash("Укажите телефон (минимум 8 символов).", "danger")
+                flash(_t("flash.checkout_phone"), "danger")
                 return render_template("checkout.html", product=p, seller=seller, quantity=max(1, qty))
             if len(address) < 8:
-                flash("Укажите адрес доставки подробнее.", "danger")
+                flash(_t("flash.checkout_address"), "danger")
                 return render_template("checkout.html", product=p, seller=seller, quantity=max(1, qty))
             if qty < 1 or qty > 99:
-                flash("Количество от 1 до 99.", "danger")
+                flash(_t("flash.checkout_qty"), "danger")
                 return render_template("checkout.html", product=p, seller=seller, quantity=1)
 
             unit = Decimal(str(p.price))
@@ -837,7 +882,7 @@ def create_app() -> Flask:
             # MVP: мгновенная «успешная оплата»
             order.status = "completed"
             db.session.commit()
-            flash("Оплата прошла успешно (демо). Заказ оформлен.", "success")
+            flash(_t("flash.checkout_success_demo"), "success")
             return redirect(url_for("order_success", order_id=order.id))
 
         qty = request.args.get("quantity", type=int) or 1
@@ -850,11 +895,11 @@ def create_app() -> Flask:
         oid = request.args.get("order_id", type=int)
         order = db.session.get(Order, oid) if oid else None
         if not order or order.status != "completed":
-            flash("Заказ не найден.", "warning")
+            flash(_t("flash.order_not_found"), "warning")
             return redirect(url_for("index"))
         prod = db.session.get(Product, order.product_id)
         if not prod:
-            flash("Товар по заказу недоступен.", "warning")
+            flash(_t("flash.order_product_gone"), "warning")
             return redirect(url_for("index"))
         seller = db.session.get(User, prod.seller_id)
         similar = _similar_products_exclude(prod, 4)
@@ -891,12 +936,12 @@ def create_app() -> Flask:
             try:
                 price = Decimal(str(request.form.get("price") or "0").replace(",", "."))
             except (InvalidOperation, ValueError):
-                flash("Некорректная цена.", "danger")
+                flash(_t("flash.bad_price"), "danger")
                 return render_template("add_product.html")
             if category not in CATEGORIES:
                 category = "handmade"
             if not title:
-                flash("Укажите название.", "danger")
+                flash(_t("flash.need_title"), "danger")
                 return render_template("add_product.html")
 
             image_rel = None
@@ -904,7 +949,7 @@ def create_app() -> Flask:
             if upload and upload.filename:
                 image_rel, up_err = _save_product_image_file(upload)
                 if up_err:
-                    flash(up_err, "danger")
+                    flash(_t(up_err), "danger")
                     return render_template("add_product.html")
 
             p = Product(
@@ -918,7 +963,7 @@ def create_app() -> Flask:
             )
             db.session.add(p)
             db.session.commit()
-            flash("Товар создан.", "success")
+            flash(_t("flash.product_created"), "success")
             return redirect(url_for("product_detail", pid=p.id))
         return render_template("add_product.html")
 
@@ -928,7 +973,7 @@ def create_app() -> Flask:
         """Редактирование карточки: только владелец."""
         p = db.session.get(Product, pid)
         if not p or p.seller_id != session["user_id"]:
-            flash("Товар не найден или не ваш.", "danger")
+            flash(_t("flash.product_not_yours"), "danger")
             return redirect(url_for("profile"))
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
@@ -938,19 +983,19 @@ def create_app() -> Flask:
             try:
                 price = Decimal(str(request.form.get("price") or "0").replace(",", "."))
             except (InvalidOperation, ValueError):
-                flash("Некорректная цена.", "danger")
+                flash(_t("flash.bad_price"), "danger")
                 return render_template("product_edit.html", product=p)
             if category not in CATEGORIES:
                 category = "handmade"
             if not title:
-                flash("Укажите название.", "danger")
+                flash(_t("flash.need_title"), "danger")
                 return render_template("product_edit.html", product=p)
 
             upload = request.files.get("image")
             if upload and upload.filename:
                 image_rel, up_err = _save_product_image_file(upload)
                 if up_err:
-                    flash(up_err, "danger")
+                    flash(_t(up_err), "danger")
                     return render_template("product_edit.html", product=p)
                 p.image_filename = image_rel
 
@@ -960,7 +1005,7 @@ def create_app() -> Flask:
             p.category = category
             p.is_eco = is_eco
             db.session.commit()
-            flash("Товар обновлён.", "success")
+            flash(_t("flash.product_updated"), "success")
             return redirect(url_for("product_detail", pid=p.id))
         return render_template("product_edit.html", product=p)
 
@@ -971,11 +1016,11 @@ def create_app() -> Flask:
         pid = request.form.get("product_id", type=int)
         p = db.session.get(Product, pid) if pid else None
         if not p or p.seller_id != session["user_id"]:
-            flash("Нельзя удалить этот товар.", "danger")
+            flash(_t("flash.cannot_delete_product"), "danger")
             return redirect(url_for("profile"))
         db.session.delete(p)
         db.session.commit()
-        flash("Товар удалён.", "info")
+        flash(_t("flash.product_deleted"), "info")
         return redirect(url_for("profile"))
 
     @app.route("/ai_advice", methods=["POST"])
@@ -1003,7 +1048,7 @@ def create_app() -> Flask:
         )
         session["profile_ai_advice"] = advice
         session.modified = True
-        flash("Советы от AI обновлены.", "success")
+        flash(_t("flash.ai_advice_updated"), "success")
         return redirect(url_for("profile"))
 
     @app.route("/profile")
@@ -1026,7 +1071,7 @@ def create_app() -> Flask:
                 .all()
             )
         ai_advice = session.get("profile_ai_advice")
-        role_label = "продавец" if u and u.role == "seller" else "покупатель"
+        role_label = _t("profile.role_seller") if u and u.role == "seller" else _t("profile.role_buyer")
         return render_template(
             "profile.html",
             my_products=my_products,
@@ -1044,7 +1089,7 @@ def create_app() -> Flask:
         session.pop("user_id", None)
         session.pop("chat_messages", None)
         session.pop("profile_ai_advice", None)
-        flash("Войдите под другим пользователем.", "info")
+        flash(_t("flash.switch_account"), "info")
         return redirect(url_for("login"))
 
     @app.route("/profile/edit", methods=["GET", "POST"])
@@ -1068,23 +1113,91 @@ def create_app() -> Flask:
 
             if new_pwd or new_pwd2:
                 if not new_pwd or not new_pwd2:
-                    flash("Заполните оба поля нового пароля или оставьте пустыми.", "danger")
+                    flash(_t("flash.password_new_incomplete"), "danger")
                     return render_template("profile_edit.html")
                 if new_pwd != new_pwd2:
-                    flash("Новый пароль и подтверждение не совпадают.", "danger")
+                    flash(_t("flash.password_mismatch"), "danger")
                     return render_template("profile_edit.html")
                 if len(new_pwd) < 6:
-                    flash("Новый пароль не короче 6 символов.", "danger")
+                    flash(_t("flash.password_short"), "danger")
                     return render_template("profile_edit.html")
                 if not u.check_password(cur_pwd):
-                    flash("Неверный текущий пароль.", "danger")
+                    flash(_t("flash.password_wrong_current"), "danger")
                     return render_template("profile_edit.html")
                 u.set_password(new_pwd)
 
             db.session.commit()
-            flash("Профиль сохранён.", "success")
+            flash(_t("flash.profile_saved"), "success")
             return redirect(url_for("profile"))
         return render_template("profile_edit.html")
+
+    @app.route("/settings", methods=["GET", "POST"])
+    @login_required
+    def user_settings():
+        prefs = merged_prefs(session.get("user_prefs"))
+        if request.method == "POST":
+            act = (request.form.get("action") or "").strip()
+            if act == "cancel":
+                return redirect(url_for("profile"))
+            if act != "save":
+                return redirect(url_for("user_settings"))
+            theme = request.form.get("theme") or "light"
+            if theme not in ("light", "dark"):
+                theme = "light"
+            fs = request.form.get("font_scale") or "md"
+            if fs not in ("sm", "md", "lg"):
+                fs = "md"
+            cur = request.form.get("currency") or "RUB"
+            if cur not in ("KZT", "RUB", "USD", "EUR"):
+                cur = "RUB"
+            new_prefs = {
+                "theme": theme,
+                "font_scale": fs,
+                "currency": cur,
+                "notif_push": "notif_push" in request.form,
+                "notif_email": "notif_email" in request.form,
+                "notif_sms": "notif_sms" in request.form,
+                "notif_products": "notif_products" in request.form,
+                "notif_promo": "notif_promo" in request.form,
+                "notif_sellers": "notif_sellers" in request.form,
+                "privacy_analytics": "privacy_analytics" in request.form,
+                "privacy_personalized": "privacy_personalized" in request.form,
+                "two_factor": "two_factor" in request.form,
+            }
+            session["user_prefs"] = new_prefs
+            session.modified = True
+            flash(translate(session.get("locale"), "settings.saved"), "success")
+            return redirect(url_for("user_settings"))
+        return render_template("settings.html", prefs=prefs)
+
+    @app.post("/settings/lang")
+    def set_locale():
+        """Смена языка (доступно без входа — для сессии и последующих визитов)."""
+        data = request.get_json(silent=True) or {}
+        lang = data.get("lang") or request.form.get("lang")
+        session["locale"] = normalize_locale(lang)
+        session.modified = True
+        if request.content_type and "application/json" in request.content_type:
+            return jsonify(ok=True, locale=session["locale"])
+        return redirect(request.referrer or url_for("index"))
+
+    @app.post("/settings/delete-account")
+    @login_required
+    def settings_delete_account_demo():
+        flash(translate(session.get("locale"), "settings.delete_demo"), "info")
+        return redirect(url_for("user_settings"))
+
+    @app.route("/privacy")
+    def privacy_page():
+        return render_template("privacy.html")
+
+    @app.route("/terms")
+    def terms_page():
+        return render_template("terms.html")
+
+    @app.route("/faq")
+    def faq_page():
+        return render_template("faq.html")
 
     @app.route("/chat", methods=["GET", "POST"])
     @login_required
@@ -1112,7 +1225,7 @@ def create_app() -> Flask:
     def chat_clear():
         session["chat_messages"] = []
         session.modified = True
-        flash("История чата очищена.", "info")
+        flash(_t("flash.chat_cleared"), "info")
         return redirect(url_for("chat"))
 
     @app.route("/credit", methods=["GET", "POST"])
@@ -1121,43 +1234,43 @@ def create_app() -> Flask:
         if request.method == "POST":
             name = (request.form.get("applicant_name") or "").strip()
             if len(name) < 2:
-                flash("Укажите имя заявителя.", "danger")
+                flash(_t("flash.credit_name"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
 
             try:
                 amount = Decimal(str(request.form.get("requested_amount") or "0").replace(",", "."))
             except (InvalidOperation, ValueError):
-                flash("Некорректная сумма кредита.", "danger")
+                flash(_t("flash.credit_bad_amount"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
             if amount < 1000 or amount > 5_000_000:
-                flash("Сумма кредита: от 1 000 до 5 000 000 ₽ (MVP).", "danger")
+                flash(_t("flash.credit_amount_range"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
 
             try:
                 income = Decimal(str(request.form.get("monthly_income") or "0").replace(",", "."))
             except (InvalidOperation, ValueError):
-                flash("Некорректный доход.", "danger")
+                flash(_t("flash.credit_bad_income"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
             if income < 0:
-                flash("Доход не может быть отрицательным.", "danger")
+                flash(_t("flash.credit_income_negative"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
 
             try:
                 sales = int(request.form.get("sales_count_30d") or "0")
             except ValueError:
-                flash("Некорректное число продаж.", "danger")
+                flash(_t("flash.credit_bad_sales"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
             if sales < 0:
-                flash("Число продаж не может быть отрицательным.", "danger")
+                flash(_t("flash.credit_sales_negative"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
 
             try:
                 exp_m = int(request.form.get("experience_months") or "0")
             except ValueError:
-                flash("Некорректный стаж (месяцы).", "danger")
+                flash(_t("flash.credit_bad_exp"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
             if exp_m < 0 or exp_m > 600:
-                flash("Стаж: от 0 до 600 месяцев.", "danger")
+                flash(_t("flash.credit_exp_range"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
 
             category = (request.form.get("business_category") or "handmade").lower().strip()
@@ -1166,7 +1279,7 @@ def create_app() -> Flask:
 
             desc = (request.form.get("business_description") or "").strip()
             if not desc or len(desc) < 15:
-                flash("Опишите бизнес подробнее (минимум ~15 символов).", "danger")
+                flash(_t("flash.credit_desc_short"), "danger")
                 return render_template("credit.html", categories=CREDIT_CATEGORIES)
 
             result = evaluate_application(
@@ -1199,7 +1312,7 @@ def create_app() -> Flask:
             )
             db.session.add(app_row)
             db.session.commit()
-            flash("Заявка отправлена. Ниже — результат AI-оценки (демо).", "success")
+            flash(_t("flash.credit_sent"), "success")
             return redirect(url_for("credit_result", application_id=app_row.id))
 
         # int/str для tojson в шаблоне (скрипт «Заполнить примером»)
@@ -1220,11 +1333,11 @@ def create_app() -> Flask:
     def credit_result():
         raw_id = request.args.get("application_id", type=int)
         if not raw_id:
-            flash("Не указана заявка.", "warning")
+            flash(_t("flash.credit_app_missing"), "warning")
             return redirect(url_for("credit"))
         row = db.session.get(CreditApplication, raw_id)
         if not row or row.user_id != session["user_id"]:
-            flash("Заявка не найдена.", "danger")
+            flash(_t("flash.credit_app_not_found"), "danger")
             return redirect(url_for("credit"))
         return render_template("credit_result.html", application=row)
 
@@ -1248,7 +1361,7 @@ def create_app() -> Flask:
         category = (data.get("category") or "handmade").strip()
         hints = (data.get("hints") or "").strip()
         if not title:
-            return jsonify({"error": "title required"}), 400
+            return jsonify({"error": _t("error.api.title_required")}), 400
         text = generate_product_description(title, category, hints)
         return jsonify({"description": text})
 
@@ -1258,12 +1371,12 @@ def create_app() -> Flask:
         """Vision: распознать товар на фото и вернуть название, категорию и 3 варианта описания."""
         f = request.files.get("image")
         if not f or not f.filename:
-            return jsonify({"error": "Выберите файл изображения."}), 400
+            return jsonify({"error": _t("error.api.no_image")}), 400
         if not _allowed_image_filename(f.filename):
-            return jsonify({"error": "Нужен PNG, JPG, JPEG или WEBP."}), 400
+            return jsonify({"error": _t("error.image_invalid")}), 400
         data = f.read()
         if len(data) > MAX_IMAGE_BYTES:
-            return jsonify({"error": "Файл больше 5 МБ."}), 400
+            return jsonify({"error": _t("error.image_too_large")}), 400
         mime = mimetypes.guess_type(f.filename)[0] or "image/jpeg"
         result = analyze_product_image(data, mime)
         return jsonify(result)
@@ -1276,7 +1389,7 @@ def create_app() -> Flask:
         if pid:
             p = db.session.get(Product, int(pid))
             if not p:
-                return jsonify({"error": "not found"}), 404
+                return jsonify({"error": _t("error.api.not_found")}), 404
             tips = eco_recommendations_for_product(p.title, p.description)
             return jsonify({"tips": tips})
         title = (data.get("title") or "Товар").strip()
@@ -1377,6 +1490,8 @@ def create_app() -> Flask:
         with app.app_context():
             db.create_all()
             migrate_sqlite_columns()
+            if app.config.get("TESTING"):
+                return
 
             MARKER_TITLE = "Набор деревянных статуэток в народном стиле"
             if Product.query.filter_by(title=MARKER_TITLE).first():

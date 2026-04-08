@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% from '_macros.html' import product_image %}
-{% block title %}Избранные товары — AI Craft Hub{% endblock %}
+{% block title %}{{ _('favorites.title') }}{% endblock %}
 {% block content %}
-<h1 style="margin-top:0;">Избранные товары</h1>
-<p class="hint">Товары без файла фото в списке не показываются.</p>
+<h1 style="margin-top:0;">{{ _('favorites.heading') }}</h1>
+<p class="hint">{{ _('favorites.lead') }}</p>
 
 <div class="grid storefront-grid">
   {% for p in products %}
@@ -22,18 +22,20 @@
         </p>
         <p class="price">{{ p.price | round(2) }} ₽</p>
         <div class="storefront-card-actions">
-          <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">Подробнее</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">{{ _('home.details') }}</a>
           <form method="post" action="{{ url_for('favorite_product') }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="product_id" value="{{ p.id }}">
             <input type="hidden" name="action" value="remove">
             <input type="hidden" name="next" value="{{ url_for('favorites_products') }}">
-            <button type="submit" class="btn btn-ghost btn-sm">Убрать</button>
+            <button type="submit" class="btn btn-ghost btn-sm">{{ _('favorites.remove') }}</button>
           </form>
         </div>
       </div>
     </article>
   {% else %}
-    <p class="hint">Пока пусто. Добавляйте сердечком с <a href="{{ url_for('index') }}">главной</a> или из <a href="{{ url_for('catalog') }}">каталога</a>.</p>
+    <p class="hint">{{ _('favorites.empty_long') }}</p>
   {% endfor %}
 </div>
+<p class="hint" style="margin-top:1rem;"><a href="{{ url_for('catalog') }}">{{ _('favorites.to_catalog') }}</a></p>
 {% endblock %}

@@ -1,67 +1,75 @@
 {% extends "base.html" %}
-{% block title %}Редактировать: {{ product.title }} — AI Craft Hub{% endblock %}
+{% block title %}{{ product.title }} — {{ _('product_edit.browser_action') }} — AI Craft Hub{% endblock %}
 {% block content %}
-<h1 style="margin-top:0;">Редактировать товар</h1>
+<h1 style="margin-top:0;">{{ _('product_edit.heading') }}</h1>
+<p class="hint">{{ _('product_edit.lead') }}</p>
 
 <div class="form-card" style="max-width:640px;">
   <form method="post" action="{{ url_for('product_edit', pid=product.id) }}" enctype="multipart/form-data">
-    <label for="image">Новое фото (необязательно)</label>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="product_image">{{ _('product_edit.new_image') }}</label>
     <input type="file" id="product_image" name="image" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp">
-    <p class="hint" style="margin-top:-0.5rem;">Оставьте пустым, чтобы сохранить текущее изображение.</p>
+    <p class="hint" style="margin-top:-0.5rem;">{{ _('product_edit.keep_photo') }}</p>
 
-    <label for="title">Название</label>
+    <label for="title">{{ _('add_product.title_label') }}</label>
     <input type="text" id="title" name="title" required value="{{ product.title }}">
 
-    <label for="category">Категория</label>
+    <label for="category">{{ _('add_product.category') }}</label>
     <select id="category" name="category">
       {% for c in categories %}
-        <option value="{{ c }}" {% if product.category == c %}selected{% endif %}>{{ c }}</option>
+        <option value="{{ c }}" {% if product.category == c %}selected{% endif %}>{{ _('cat.' + c) }}</option>
       {% endfor %}
     </select>
 
-    <label for="price">Цена (₽)</label>
+    <label for="price">{{ _('add_product.price') }}</label>
     <input type="number" id="price" name="price" step="0.01" min="0" required value="{{ product.price }}">
 
     <div class="checkbox-row">
       <input type="checkbox" id="is_eco" name="is_eco" value="1" {% if product.is_eco %}checked{% endif %}>
-      <label for="is_eco" style="margin:0;font-weight:500;">Отметить как eco / ESG товар</label>
+      <label for="is_eco" style="margin:0;font-weight:500;">{{ _('add_product.eco') }}</label>
     </div>
 
-    <label for="description">Описание</label>
+    <label for="description">{{ _('add_product.desc') }}</label>
     <textarea id="description" name="description" rows="6">{{ product.description or '' }}</textarea>
 
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
-      <button type="button" class="btn btn-ghost btn-sm" id="btn-ai-desc">Сгенерировать описание через AI</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-ai-desc">{{ _('product_edit.ai_desc') }}</button>
       <span class="hint" id="ai-desc-status"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    <button type="submit" class="btn btn-primary">{{ _('product_edit.save') }}</button>
   </form>
 </div>
 <p class="hint">
-  <a href="{{ url_for('product_detail', pid=product.id) }}">Карточка товара</a> ·
-  <a href="{{ url_for('profile') }}">Профиль</a>
+  <a href="{{ url_for('product_detail', pid=product.id) }}">{{ _('product_edit.card_link') }}</a> ·
+  <a href="{{ url_for('profile') }}">{{ _('product_edit.profile_link') }}</a>
 </p>
 
 <script>
 (function() {
+  var L = {
+    needTitle: {{ _('add_product.need_title_first')|tojson }},
+    gen: {{ _('add_product.gen_running')|tojson }},
+    done: {{ _('add_product.done')|tojson }},
+    err: {{ _('common.error')|tojson }}
+  };
   document.getElementById('btn-ai-desc').addEventListener('click', async function() {
     const title = document.getElementById('title').value.trim();
     const category = document.getElementById('category').value;
     const status = document.getElementById('ai-desc-status');
-    if (!title) { status.textContent = 'Сначала введите название'; return; }
-    status.textContent = 'Генерация…';
+    if (!title) { status.textContent = L.needTitle; return; }
+    status.textContent = L.gen;
     const r = await fetch('{{ url_for("api_describe") }}', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: window.csrfHeaders({'Content-Type': 'application/json'}),
       body: JSON.stringify({ title, category, hints: '' })
     });
     const j = await r.json();
     if (j.description) {
       document.getElementById('description').value = j.description;
-      status.textContent = 'Готово';
+      status.textContent = L.done;
     } else {
-      status.textContent = j.error || 'Ошибка';
+      status.textContent = j.error || L.err;
     }
   });
 })();

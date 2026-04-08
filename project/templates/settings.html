@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}{{ _('settings.title') }} — AI Craft Hub{% endblock %}
+{% block head_extra %}
+<script>
+  window.SETTINGS_LANG_URL = {{ url_for('set_locale') | tojson }};
+</script>
+<script src="{{ url_for('static', filename='settings-page.js') }}" defer></script>
+{% endblock %}
+{% block content %}
+
+<div class="settings-page">
+  <header class="settings-page__head">
+    <h1 style="margin:0;">{{ _('settings.title') }}</h1>
+    <p class="hint settings-page__sub">{{ _('settings.subtitle') }}</p>
+  </header>
+
+  <details class="settings-accordion" open>
+    <summary class="settings-accordion__title">{{ _('settings.section.language') }}</summary>
+    <div class="settings-accordion__body">
+      <label class="settings-label" for="settings-lang-select">{{ _('settings.lang.label') }}</label>
+      <select id="settings-lang-select" class="settings-select" autocomplete="off">
+        <option value="kk" {% if locale == 'kk' %}selected{% endif %}>🇰🇿 {{ _('settings.lang.kk') }}</option>
+        <option value="ru" {% if locale == 'ru' %}selected{% endif %}>🇷🇺 {{ _('settings.lang.ru') }}</option>
+        <option value="en" {% if locale == 'en' %}selected{% endif %}>🇬🇧 {{ _('settings.lang.en') }}</option>
+      </select>
+      <p class="hint" style="margin:0.5rem 0 0;">{{ _('settings.lang.hint') }}</p>
+    </div>
+  </details>
+
+  <form method="post" action="{{ url_for('user_settings') }}" id="settings-main-form" class="settings-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <details class="settings-accordion" open>
+      <summary class="settings-accordion__title">{{ _('settings.section.account') }}</summary>
+      <div class="settings-accordion__body">
+        <ul class="settings-link-list">
+          <li><a class="btn btn-ghost" style="width:100%;justify-content:flex-start;" href="{{ url_for('profile_edit') }}">{{ _('settings.account.edit') }}</a>
+            <span class="hint settings-inline-hint">{{ _('settings.account.edit_hint') }}</span></li>
+          <li><a class="btn btn-ghost" style="width:100%;justify-content:flex-start;" href="{{ url_for('profile_edit') }}#current_password">{{ _('settings.account.password') }}</a>
+            <span class="hint settings-inline-hint">{{ _('settings.account.password_hint') }}</span></li>
+          <li>
+            <span class="settings-strong">{{ _('settings.account.security') }}</span>
+            <label class="settings-check settings-check--block">
+              <input type="checkbox" name="two_factor" value="1" {% if prefs.two_factor %}checked{% endif %}>
+              {{ _('settings.account.2fa') }}
+            </label>
+            <p class="hint" style="margin:0.25rem 0 0;">{{ _('settings.account.2fa_hint') }}</p>
+          </li>
+          <li><a class="btn btn-primary" style="width:100%;" href="{{ url_for('logout') }}">{{ _('settings.account.logout') }}</a></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="settings-accordion" open>
+      <summary class="settings-accordion__title">{{ _('settings.section.notifications') }}</summary>
+      <div class="settings-accordion__body">
+        <p class="settings-strong">{{ _('settings.notif.master') }}</p>
+        <label class="settings-check"><input type="checkbox" name="notif_push" value="1" {% if prefs.notif_push %}checked{% endif %}> {{ _('settings.notif.push') }}</label>
+        <label class="settings-check"><input type="checkbox" name="notif_email" value="1" {% if prefs.notif_email %}checked{% endif %}> {{ _('settings.notif.email') }}</label>
+        <label class="settings-check"><input type="checkbox" name="notif_sms" value="1" {% if prefs.notif_sms %}checked{% endif %}> {{ _('settings.notif.sms') }}</label>
+        <p class="settings-strong" style="margin-top:1rem;">{{ _('settings.notif.types') }}</p>
+        <label class="settings-check"><input type="checkbox" name="notif_products" value="1" {% if prefs.notif_products %}checked{% endif %}> {{ _('settings.notif.products') }}</label>
+        <label class="settings-check"><input type="checkbox" name="notif_promo" value="1" {% if prefs.notif_promo %}checked{% endif %}> {{ _('settings.notif.promo') }}</label>
+        <label class="settings-check"><input type="checkbox" name="notif_sellers" value="1" {% if prefs.notif_sellers %}checked{% endif %}> {{ _('settings.notif.sellers') }}</label>
+      </div>
+    </details>
+
+    <details class="settings-accordion" open>
+      <summary class="settings-accordion__title">{{ _('settings.section.appearance') }}</summary>
+      <div class="settings-accordion__body">
+        <p class="settings-strong">{{ _('settings.appearance.theme') }}</p>
+        <div class="settings-radio-row">
+          <label class="settings-radio"><input type="radio" name="theme" value="light" {% if prefs.theme == 'light' %}checked{% endif %}> {{ _('settings.appearance.light') }}</label>
+          <label class="settings-radio"><input type="radio" name="theme" value="dark" {% if prefs.theme == 'dark' %}checked{% endif %}> {{ _('settings.appearance.dark') }}</label>
+        </div>
+        <p class="settings-strong" style="margin-top:1rem;">{{ _('settings.appearance.font') }}</p>
+        <div class="settings-radio-row">
+          <label class="settings-radio"><input type="radio" name="font_scale" value="sm" {% if prefs.font_scale == 'sm' %}checked{% endif %}> {{ _('settings.appearance.font_sm') }}</label>
+          <label class="settings-radio"><input type="radio" name="font_scale" value="md" {% if prefs.font_scale == 'md' %}checked{% endif %}> {{ _('settings.appearance.font_md') }}</label>
+          <label class="settings-radio"><input type="radio" name="font_scale" value="lg" {% if prefs.font_scale == 'lg' %}checked{% endif %}> {{ _('settings.appearance.font_lg') }}</label>
+        </div>
+      </div>
+    </details>
+
+    <details class="settings-accordion">
+      <summary class="settings-accordion__title">{{ _('settings.section.payments') }}</summary>
+      <div class="settings-accordion__body">
+        <p>{{ _('settings.payments.cards') }}</p>
+        <p class="hint">{{ _('settings.payments.cards_hint') }}</p>
+        <button type="button" class="btn btn-ghost" disabled style="margin-top:0.5rem;">{{ _('settings.payments.add') }}</button>
+        <p class="hint" style="margin-top:1rem;">{{ _('settings.payments.history') }} (MVP)</p>
+        <label class="settings-label" for="currency-select">{{ _('settings.payments.currency') }}</label>
+        <select id="currency-select" name="currency" class="settings-select">
+          <option value="KZT" {% if prefs.currency == 'KZT' %}selected{% endif %}>KZT — ₸</option>
+          <option value="RUB" {% if prefs.currency == 'RUB' %}selected{% endif %}>RUB — ₽</option>
+          <option value="USD" {% if prefs.currency == 'USD' %}selected{% endif %}>USD — $</option>
+          <option value="EUR" {% if prefs.currency == 'EUR' %}selected{% endif %}>EUR — €</option>
+        </select>
+      </div>
+    </details>
+
+    <details class="settings-accordion">
+      <summary class="settings-accordion__title">{{ _('settings.section.support') }}</summary>
+      <div class="settings-accordion__body">
+        <p><a class="btn btn-ghost" href="mailto:support@craft.demo">{{ _('settings.support.email') }}</a></p>
+        <p style="margin-top:0.75rem;"><a href="{{ url_for('faq_page') }}">{{ _('settings.support.faq') }}</a></p>
+      </div>
+    </details>
+
+    <details class="settings-accordion">
+      <summary class="settings-accordion__title">{{ _('settings.section.advanced') }}</summary>
+      <div class="settings-accordion__body">
+        <p class="settings-strong">{{ _('settings.advanced.privacy') }}</p>
+        <label class="settings-check"><input type="checkbox" name="privacy_analytics" value="1" {% if prefs.privacy_analytics %}checked{% endif %}> {{ _('settings.advanced.analytics') }}</label>
+        <label class="settings-check"><input type="checkbox" name="privacy_personalized" value="1" {% if prefs.privacy_personalized %}checked{% endif %}> {{ _('settings.advanced.personalized') }}</label>
+        <p style="margin-top:1rem;"><a href="{{ url_for('privacy_page') }}">{{ _('settings.links.privacy') }}</a> · <a href="{{ url_for('terms_page') }}">{{ _('settings.links.terms') }}</a></p>
+        <p class="settings-strong" style="margin-top:1.25rem;">{{ _('settings.advanced.delete') }}</p>
+        <p class="hint">{{ _('settings.advanced.delete_warn') }}</p>
+      </div>
+    </details>
+
+    <div class="settings-actions">
+      <button type="submit" name="action" value="save" class="btn btn-primary">{{ _('settings.save') }}</button>
+      <button type="submit" name="action" value="cancel" class="btn btn-ghost" formnovalidate>{{ _('settings.cancel') }}</button>
+    </div>
+  </form>
+
+  <form method="post" action="{{ url_for('settings_delete_account_demo') }}" class="settings-danger-zone" onsubmit="return confirm({{ _('settings.delete_confirm')|tojson }});">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-ghost" style="border-color:var(--danger);color:var(--danger);">{{ _('settings.advanced.delete_btn') }}</button>
+  </form>
+
+  <p class="hint" style="margin-top:1.5rem;"><a href="{{ url_for('profile') }}">← {{ _('nav.profile') }}</a></p>
+</div>
+{% endblock %}
