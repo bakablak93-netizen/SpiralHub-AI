@@ -1645,7 +1645,8 @@ def create_app() -> Flask:
                     CreditApplication.business_description.contains(marker),
                 ).first():
                     return
-                desc = kw.pop("business_description") + " " + marker
+                base_desc = kw.pop("business_description", None) or "Демо-описание бизнеса"
+                desc = base_desc + " " + marker
                 db.session.add(CreditApplication(business_description=desc, user_id=user.id, **kw))
 
             wood_user = User.query.filter_by(email="wood@demo.craft").first()
@@ -1653,6 +1654,7 @@ def create_app() -> Flask:
                 wood_user,
                 "[demo-credit-seed-a]",
                 applicant_name="Иван Деревянцев",
+                business_description="Столярка и изделия из дерева, eco-упаковка, продажи на маркетплейсе.",
                 requested_amount=Decimal("150000.00"),
                 monthly_income=Decimal("68000.00"),
                 sales_count_30d=28,
@@ -1673,6 +1675,7 @@ def create_app() -> Flask:
                 clay_user,
                 "[demo-credit-seed-b]",
                 applicant_name="Студия «Глина и солнце»",
+                business_description="Керамика ручной работы, посуда и декор, онлайн-заказы.",
                 requested_amount=Decimal("400000.00"),
                 monthly_income=Decimal("22000.00"),
                 sales_count_30d=2,
@@ -1693,6 +1696,7 @@ def create_app() -> Flask:
                     buyer_demo,
                     "[demo-credit-seed-c]",
                     applicant_name="Покупатель Демо",
+                    business_description="Bio-ниша, развитие витрины и осознанное потребление.",
                     requested_amount=Decimal("50000.00"),
                     monthly_income=Decimal("45000.00"),
                     sales_count_30d=8,
