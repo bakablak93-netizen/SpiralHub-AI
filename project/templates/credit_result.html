@@ -42,9 +42,9 @@
 
   <dl class="credit-order-dl">
     <dt>{{ _('credit_result.dt_applicant') }}</dt><dd>{{ application.applicant_name or '—' }}</dd>
-    <dt>{{ _('credit_result.dt_requested') }}</dt><dd>{% if application.requested_amount %}{{ application.requested_amount | int }} ₽{% else %}—{% endif %}</dd>
-    <dt>{{ _('credit_result.dt_recommended') }}</dt><dd>{% if application.recommended_amount %}{{ application.recommended_amount | int }} ₽{% else %}—{% endif %}</dd>
-    <dt>{{ _('credit_result.dt_income') }}</dt><dd>{{ application.monthly_income | int }} ₽</dd>
+    <dt>{{ _('credit_result.dt_requested') }}</dt><dd>{% if application.requested_amount %}{{ application.requested_amount | int }} ₸{% else %}—{% endif %}</dd>
+    <dt>{{ _('credit_result.dt_recommended') }}</dt><dd>{% if application.recommended_amount %}{{ application.recommended_amount | int }} ₸{% else %}—{% endif %}</dd>
+    <dt>{{ _('credit_result.dt_income') }}</dt><dd>{{ application.monthly_income | int }} ₸</dd>
     <dt>{{ _('credit_result.dt_sales') }}</dt><dd>{{ application.sales_count_30d }}</dd>
     <dt>{{ _('credit_result.dt_exp') }}</dt><dd>{{ application.experience_months or '—' }} {{ _('credit.sum_suffix_mo') }}</dd>
     <dt>{{ _('credit_result.dt_category') }}</dt><dd>{{ application.business_category or '—' }}</dd>

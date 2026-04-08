@@ -96,7 +96,7 @@
           {% endif %}
         </p>
         <p class="storefront-pop hint">{{ _('storefront.popularity') }} {{ popularity_by_id.get(p.id, 0) }}</p>
-        <p class="price">{{ p.price | round(2) }} ₽</p>
+        <p class="price">{{ p.price | round(2) }} ₸</p>
         <div class="storefront-card-actions">
           <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">{{ _('home.details') }}</a>
           <a class="btn btn-ghost btn-sm" href="{{ url_for('checkout', product_id=p.id) }}">{{ _('home.buy') }}</a>

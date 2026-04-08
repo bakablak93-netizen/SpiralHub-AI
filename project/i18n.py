@@ -67,7 +67,7 @@ def default_user_prefs() -> dict[str, Any]:
     return {
         "theme": "light",
         "font_scale": "md",
-        "currency": "RUB",
+        "currency": "KZT",
         "notif_push": True,
         "notif_email": True,
         "notif_sms": False,

@@ -42,7 +42,7 @@
           <span class="stat-tile__lbl">{{ _('profile.stat_sales') }}</span>
         </div>
         <div class="stat-tile">
-          <span class="stat-tile__val">{{ profile_stats.estimated_revenue | round(0) | int }} ₽</span>
+          <span class="stat-tile__val">{{ profile_stats.estimated_revenue | round(0) | int }} ₸</span>
           <span class="stat-tile__lbl">{{ _('profile.stat_revenue_demo') }}</span>
         </div>
       </div>
@@ -144,7 +144,7 @@
                 <a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a>
                 <div class="hint" style="margin:0.25rem 0 0;font-weight:400;">{{ (p.description or '')[:80] }}{% if (p.description or '')|length > 80 %}…{% endif %}</div>
               </td>
-              <td>{{ p.price | round(2) }} ₽</td>
+              <td>{{ p.price | round(2) }} ₸</td>
               <td><code>{{ _('cat.' + p.category) }}</code></td>
               <td>{% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">eco</span>{% else %}—{% endif %}</td>
               <td class="data-table__actions">
@@ -165,7 +165,7 @@
         <article class="product-card-m">
           <h3 class="product-card-m__title"><a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a></h3>
           <div class="product-card-m__meta">
-            <span><strong>{{ p.price | round(2) }} ₽</strong></span>
+            <span><strong>{{ p.price | round(2) }} ₸</strong></span>
             <span><code>{{ _('cat.' + p.category) }}</code></span>
             {% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">eco</span>{% endif %}
           </div>

@@ -55,7 +55,7 @@
       <span class="stat-tile__lbl">{{ _('seller_profile.stat_sales') }}</span>
     </div>
     <div class="stat-tile">
-      <span class="stat-tile__val">{{ stats.estimated_revenue | round(0) | int }} ₽</span>
+      <span class="stat-tile__val">{{ stats.estimated_revenue | round(0) | int }} ₸</span>
       <span class="stat-tile__lbl">{{ _('seller_profile.stat_est_revenue') }}</span>
     </div>
     <div class="stat-tile">
@@ -119,7 +119,7 @@
       <div class="card-body">
         <h3 style="margin-top:0;">{{ p.title }}{% if p.is_eco %} <span class="tag-eco">Eco</span>{% endif %}</h3>
         <p class="meta">{{ _('cat.' + p.category) }}</p>
-        <p class="price">{{ p.price | round(2) }} ₽</p>
+        <p class="price">{{ p.price | round(2) }} ₸</p>
       </div>
     </a>
   {% else %}

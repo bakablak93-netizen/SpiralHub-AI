@@ -33,6 +33,8 @@
   --chat-msg-ai-bg: #f5f5f4;
   --chat-msg-ai-text: #1c1917;
   --chat-msg-ai-who: #57534e;
+  /* Поля форм: в тёмной теме нельзя оставлять светлый #fafaf9 и наследовать светлый --text */
+  --input-bg: #fafaf9;
 }
 
 * {
@@ -335,7 +337,10 @@ textarea {
   font-family: inherit;
   font-size: 1rem;
   margin-bottom: 1rem;
-  background: #fafaf9;
+  background: var(--input-bg);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -348,6 +353,8 @@ textarea:focus {
   outline: none;
   border-color: rgba(45, 106, 79, 0.45);
   background: var(--surface);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
 }
 
 textarea {
@@ -570,6 +577,8 @@ textarea {
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
 }
 
 .credit-sim-title {
@@ -1604,6 +1613,11 @@ body.nav-open .nav-overlay {
   pointer-events: auto;
 }
 
+/* Оверлей и шапка — соседи у body; иначе z-index:110 оверлея перекрывает шапку (100) и клики не доходят до пунктов меню */
+body.nav-open .site-header {
+  z-index: 150;
+}
+
 @media (max-width: 768px) {
   .nav-toggle {
     display: flex;
@@ -1622,7 +1636,7 @@ body.nav-open .nav-overlay {
     box-shadow: -4px 0 40px rgba(0, 0, 0, 0.07);
     flex-direction: column;
     align-items: stretch;
-    gap: 0.25rem;
+    gap: 0.5rem;
     z-index: 120;
     transform: translateX(100%);
     transition: transform 0.25s ease;
@@ -1634,18 +1648,35 @@ body.nav-open .nav-overlay {
   }
 
   .nav--main a {
-    padding: 0.75rem 0.85rem;
+    padding: 0.65rem 1.1rem;
     border-radius: var(--radius-btn);
     min-height: var(--tap-min);
     display: flex;
     align-items: center;
+    justify-content: center;
     font-size: 1rem;
-    color: var(--text);
+    font-weight: 600;
+    font-family: inherit;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(45, 106, 79, 0.12);
+    /* Как .btn-ghost: обводка и акцентный текст */
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px solid rgba(45, 106, 79, 0.35);
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
 
-  .nav--main a:hover {
-    background: #f5f5f4;
+  .nav--main a:hover,
+  .nav--main a:focus-visible {
+    background: rgba(45, 106, 79, 0.06);
+    border-color: var(--accent);
+    color: var(--accent);
     text-decoration: none;
+  }
+
+  .nav--main a:active {
+    transform: scale(0.98);
   }
 
   .nav--main .badge-demo {
@@ -2334,6 +2365,7 @@ html[data-theme="dark"] {
   --bg: #141312;
   --surface: #1c1917;
   --text: #fafaf9;
+  --input-bg: #292524;
   --muted: #a8a29e;
   --accent: #40916c;
   --accent-light: #52b788;
@@ -2356,6 +2388,18 @@ html[data-theme="dark"] .site-header {
 
 html[data-theme="dark"] .nav-toggle__bar {
   background: var(--text);
+}
+
+@media (max-width: 768px) {
+  html[data-theme="dark"] .nav--main a {
+    border-color: rgba(82, 183, 136, 0.45);
+    -webkit-tap-highlight-color: rgba(82, 183, 136, 0.15);
+  }
+
+  html[data-theme="dark"] .nav--main a:hover,
+  html[data-theme="dark"] .nav--main a:focus-visible {
+    background: rgba(82, 183, 136, 0.1);
+  }
 }
 
 html[data-theme="dark"] .fab-chat {

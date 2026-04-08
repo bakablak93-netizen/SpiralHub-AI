@@ -371,7 +371,7 @@ def narrate_credit_assessment(
     user = (
         "Ты финтех-аналитик микрокредитов для ремесленников и самозанятых (SpiralHubAI).\n"
         "Ниже уже рассчитаны показатели системой — в summary обязательно используй ТЕ ЖЕ числа "
-        f"(вероятность {approval_probability}%, риск {risk}, рекомендуемая сумма {recommended_amount:,.0f} ₽), "
+        f"(вероятность {approval_probability}%, риск {risk}, рекомендуемая сумма {recommended_amount:,.0f} ₸), "
         "не выдумывай другие цифры.\n"
         + json.dumps(payload, ensure_ascii=False)
         + "\n\n"
@@ -425,7 +425,7 @@ def _demo_narrate_credit(payload: dict[str, Any], error: str = "") -> dict[str, 
     err = f" ({error})" if error else ""
     summary = (
         f"{name}, демо-анализ{err}: при риске «{risk}» ориентировочная вероятность одобрения — {prob}%. "
-        f"Рекомендуем ориентироваться на сумму до {rec:,.0f} ₽ с учётом вашего дохода и активности. "
+        f"Рекомендуем ориентироваться на сумму до {rec:,.0f} ₸ с учётом вашего дохода и активности. "
     )
     if sust:
         summary += "Проект отмечен как устойчивый (eco/bio) — для программы ESG это плюс. "
@@ -500,7 +500,7 @@ def seller_dashboard_advice(
     else:
         for i, p in enumerate(products[:24], 1):
             lines.append(
-                f"{i}. {p.get('title', '')} | {p.get('category', '')} | {p.get('price', '')} ₽ | "
+                f"{i}. {p.get('title', '')} | {p.get('category', '')} | {p.get('price', '')} ₸ | "
                 f"{str(p.get('description', ''))[:120]}"
             )
     user_block = "\n".join(lines)
@@ -827,7 +827,7 @@ def analyze_seller_for_customer(
     bio = (seller_bio or "")[:800]
     lines = [f"Мастерская: {name}", f"О себе: {bio}", f"Доля eco-товаров: {eco_percent}%", "Товары:"]
     for i, p in enumerate(products[:24], 1):
-        lines.append(f"{i}. {p.get('title')} — {p.get('category')} — {p.get('price')} ₽")
+        lines.append(f"{i}. {p.get('title')} — {p.get('category')} — {p.get('price')} ₸")
     block = "\n".join(lines)
     schema = (
         'Ответь ТОЛЬКО JSON: {"strengths":"...", "weaknesses":"...", '
@@ -909,7 +909,7 @@ def purchase_advice_for_product(
     Ключи: worth_buying, eco_assessment, pros, cons.
     """
     block = (
-        f"Товар: {title}\nКатегория: {category}\nЦена: {price} ₽\n"
+        f"Товар: {title}\nКатегория: {category}\nЦена: {price} ₸\n"
         f"Eco-флаг: {is_eco}\nПродавец: {seller_name}\nОписание: {(description or '')[:900]}"
     )
     schema = (
@@ -966,7 +966,7 @@ def _demo_purchase_advice(title: str, category: str, is_eco: bool, price: float)
     )
     return {
         "worth_buying": (
-            f"Демо: «{title}» в категории «{category}» за {price:,.0f} ₽ — разумный формат для маркетплейса handmade. "
+            f"Демо: «{title}» в категории «{category}» за {price:,.0f} ₸ — разумный формат для маркетплейса handmade. "
             "Сравните с похожими лотами и почитайте описание. С OPENAI_API_KEY совет будет персональнее."
         ),
         "eco_assessment": eco_txt,
@@ -1005,7 +1005,7 @@ def _demo_credit_assessment(
     else:
         risk = "high"
     summary = (
-        f"Демо-оценка: доход {monthly_income:,.0f} ₽/мес, продаж за 30 дней: {sales_count_30d}. "
+        f"Демо-оценка: доход {monthly_income:,.0f} ₸/мес, продаж за 30 дней: {sales_count_30d}. "
         "Модель (или эвристика) учитывает устойчивость ниши и активность. "
         "С реальным OpenAI ответ будет детальнее."
     )

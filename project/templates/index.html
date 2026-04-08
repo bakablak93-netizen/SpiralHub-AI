@@ -27,7 +27,7 @@
           {% if p.is_eco or p.category == 'eco' %}<span class="tag-eco">Eco</span>{% endif %}
         </h3>
         <p class="meta">{{ _('cat.' + p.category) }} · {{ (sellers_by_id.get(p.seller_id).display_name or sellers_by_id.get(p.seller_id).email) if sellers_by_id.get(p.seller_id) else _('home.seller_fallback') }}</p>
-        <p class="price">{{ p.price | round(2) }} ₽</p>
+        <p class="price">{{ p.price | round(2) }} ₸</p>
         <div class="storefront-card-actions">
           <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">{{ _('home.details') }}</a>
           <a class="btn btn-ghost btn-sm" href="{{ url_for('checkout', product_id=p.id) }}">{{ _('home.buy') }}</a>

@@ -21,7 +21,7 @@
             {{ _('checkout.seller') }} <a href="{{ url_for('seller_public', sid=seller.id) }}">{{ seller.display_name or seller.email }}</a>
           </p>
         {% endif %}
-        <p class="checkout-unit-price">{{ _('checkout.unit_price') }} <strong>{{ product.price | round(2) }} ₽</strong></p>
+        <p class="checkout-unit-price">{{ _('checkout.unit_price') }} <strong>{{ product.price | round(2) }} ₸</strong></p>
       </div>
     </div>
     <p class="hint" style="margin:0.75rem 0 0;">
@@ -53,7 +53,7 @@
       <textarea id="ba" name="buyer_address" rows="3" required minlength="8" placeholder="{{ _('checkout.address_ph') }}"></textarea>
 
       <div class="checkout-total-line">
-        {{ _('checkout.total') }} <strong id="total-display">{{ ((product.price | float) * quantity) | round(2) }} ₽</strong>
+        {{ _('checkout.total') }} <strong id="total-display">{{ ((product.price | float) * quantity) | round(2) }} ₸</strong>
       </div>
 
       <p class="hint">{{ _('checkout.pay_hint') }}</p>
@@ -84,7 +84,7 @@
   const totalEl = document.getElementById('total-display');
   function upd() {
     var q = parseInt(qtyEl.value, 10) || 1;
-    totalEl.textContent = (unit * q).toFixed(2) + ' ₽';
+    totalEl.textContent = (unit * q).toFixed(2) + ' ₸';
   }
   qtyEl.addEventListener('input', upd);
 

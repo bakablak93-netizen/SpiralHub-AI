@@ -33,7 +33,7 @@
 <div class="result-panel result-panel--muted">
   <strong>{{ _('credit.example_title') }}</strong>
   <p class="hint" style="margin:0.5rem 0 0;">
-    {{ example.name }} — {{ example.amount | int }} ₽ · {{ _('credit.income') }} {{ example.income | int }} ₽ ·
+    {{ example.name }} — {{ example.amount | int }} ₸ · {{ _('credit.income') }} {{ example.income | int }} ₸ ·
     {{ _('credit.sales') }} {{ example.sales }} · {{ _('credit.exp') }} {{ example.experience_months }} {{ _('credit.sum_suffix_mo') }} ·
     {{ _('credit.biz_cat') }}: {{ example.category }}
   </p>
@@ -141,10 +141,10 @@ window.updateCreditSummary = function () {
   var months = document.getElementById('loan_term_out');
   var termText = months ? months.textContent : '—';
   box.innerHTML =
-    '<p><strong>' + L.amount + '</strong> ' + (v('requested_amount') || '—') + ' ₽</p>' +
+    '<p><strong>' + L.amount + '</strong> ' + (v('requested_amount') || '—') + ' ₸</p>' +
     '<p><strong>' + L.term + '</strong> ' + termText + ' ' + L.mo + '</p>' +
     '<p><strong>' + L.name + '</strong> ' + (v('applicant_name') || '—') + '</p>' +
-    '<p><strong>' + L.income + '</strong> ' + (v('monthly_income') || '—') + ' ₽</p>' +
+    '<p><strong>' + L.income + '</strong> ' + (v('monthly_income') || '—') + ' ₸</p>' +
     '<p><strong>' + L.sales + '</strong> ' + (v('sales_count_30d') || '—') + '</p>' +
     '<p><strong>' + L.exp + '</strong> ' + (v('experience_months') || '—') + ' ' + L.mo + '</p>' +
     '<p><strong>' + L.cat + '</strong> ' + catLabel + '</p>' +
@@ -187,7 +187,7 @@ window.updateCreditSummary = function () {
     return principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
   }
   function fmt(n) {
-    return new Intl.NumberFormat(loc, { maximumFractionDigits: 0 }).format(n) + ' ₽';
+    return new Intl.NumberFormat(loc, { maximumFractionDigits: 0 }).format(n) + ' ₸';
   }
   function updateSim() {
     var p = parseFloat(document.getElementById('sim_amount').value) || 0;
@@ -197,48 +197,8 @@ window.updateCreditSummary = function () {
     document.getElementById('sim_payment_out').innerHTML =
       label + ' <strong>' + fmt(m) + '</strong>';
   }
-  // #region agent log
-  var _simDbgN = 0;
-  function _simDbg(el) {
-    if (_simDbgN >= 8) return;
-    _simDbgN++;
-    try {
-      var cs = window.getComputedStyle(el);
-      var rootCs = window.getComputedStyle(document.documentElement);
-      fetch('http://127.0.0.1:7691/ingest/4a165c63-b34d-4e8a-bf84-d57f937fbdc7', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '5e5cf9' },
-        body: JSON.stringify({
-          sessionId: '5e5cf9',
-          location: 'credit.html:sim-input',
-          message: 'simulator input runtime',
-          data: {
-            hypothesisId: 'H1-H5',
-            targetId: el.id,
-            domValue: el.value,
-            color: cs.color,
-            backgroundColor: cs.backgroundColor,
-            webkitTextFill: cs.getPropertyValue('-webkit-text-fill-color'),
-            opacity: cs.opacity,
-            visibility: cs.visibility,
-            fontSize: cs.fontSize,
-            rootColorScheme: rootCs.colorScheme,
-            htmlTheme: document.documentElement.getAttribute('data-theme'),
-            activeElementId: document.activeElement ? document.activeElement.id : null
-          },
-          timestamp: Date.now(),
-          runId: 'pre-fix'
-        })
-      }).catch(function () {});
-    } catch (e) {}
-  }
-  // #endregion
   ['sim_amount', 'sim_months'].forEach(function (id) {
-    var el = document.getElementById(id);
-    el.addEventListener('input', function () {
-      _simDbg(this);
-      updateSim();
-    });
+    document.getElementById(id).addEventListener('input', updateSim);
   });
   updateSim();
 })();

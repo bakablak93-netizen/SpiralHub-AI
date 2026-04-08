@@ -15,7 +15,7 @@
     <dt>{{ _('success.dt_qty') }}</dt>
     <dd>{{ order.quantity }}</dd>
     <dt>{{ _('success.dt_sum') }}</dt>
-    <dd><strong>{{ order.total_price | round(2) }} ₽</strong> ({{ _('success.dt_sum_per') }} {{ order.unit_price | round(2) }} ₽ {{ _('success.dt_sum_unit') }})</dd>
+    <dd><strong>{{ order.total_price | round(2) }} ₸</strong> ({{ _('success.dt_sum_per') }} {{ order.unit_price | round(2) }} ₸ {{ _('success.dt_sum_unit') }})</dd>
     <dt>{{ _('success.dt_status') }}</dt>
     <dd><span class="order-status order-status--ok">{{ order.status }}</span> {{ _('success.status_ok') }}</dd>
     <dt>{{ _('success.dt_recipient') }}</dt>
@@ -41,7 +41,7 @@
         <div class="card-body">
           <h3 style="margin-top:0;font-size:1rem;">{{ sp.title }}</h3>
           <p class="meta">{% if ss %}{{ ss.display_name or ss.email }}{% endif %}</p>
-          <p class="price">{{ sp.price | round(2) }} ₽</p>
+          <p class="price">{{ sp.price | round(2) }} ₸</p>
         </div>
       </a>
     {% endfor %}
@@ -61,7 +61,7 @@
         <div class="card-body">
           <h3 style="margin-top:0;font-size:1rem;">{{ ep.title }} <span class="tag-eco">Eco</span></h3>
           <p class="meta">{% if es %}{{ es.display_name or es.email }}{% endif %}</p>
-          <p class="price">{{ ep.price | round(2) }} ₽</p>
+          <p class="price">{{ ep.price | round(2) }} ₸</p>
         </div>
       </a>
     {% endfor %}

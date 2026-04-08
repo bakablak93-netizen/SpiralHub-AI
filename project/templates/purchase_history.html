@@ -32,7 +32,7 @@
           {% endif %}
         </td>
         <td>{{ o.quantity }}</td>
-        <td>{{ (o.total_price | float) | round(2) }} ₽</td>
+        <td>{{ (o.total_price | float) | round(2) }} ₸</td>
         <td><span class="order-status-badge order-status-badge--completed">{{ _('purchase_history.st_completed') }}</span></td>
       </tr>
       {% endfor %}

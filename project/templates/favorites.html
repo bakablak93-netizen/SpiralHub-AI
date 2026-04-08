@@ -20,7 +20,7 @@
             <a href="{{ url_for('seller_public', sid=seller.id) }}">{{ seller.display_name or seller.email }}</a>
           {% endif %}
         </p>
-        <p class="price">{{ p.price | round(2) }} ₽</p>
+        <p class="price">{{ p.price | round(2) }} ₸</p>
         <div class="storefront-card-actions">
           <a class="btn btn-primary btn-sm" href="{{ url_for('product_detail', pid=p.id) }}">{{ _('home.details') }}</a>
           <form method="post" action="{{ url_for('favorite_product') }}" style="display:inline;">

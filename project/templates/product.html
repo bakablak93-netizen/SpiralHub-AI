@@ -16,7 +16,7 @@
         <a href="{{ url_for('seller_public', sid=seller.id) }}"><strong>{{ seller.display_name or seller.email }}</strong></a>
       {% endif %}
     </p>
-    <p class="price" style="font-size:1.5rem;">{{ product.price | round(2) }} ₽</p>
+    <p class="price" style="font-size:1.5rem;">{{ product.price | round(2) }} ₸</p>
 
     <div class="eco-score-box card-panel" style="margin:1rem 0;padding:1rem;">
       <h2 class="panel-title" style="font-size:0.95rem;margin-bottom:0.35rem;">{{ _('product.page.eco_panel') }}</h2>
@@ -68,7 +68,7 @@
       <div class="card-body">
         <h3 style="margin-top:0;">{{ sp.title }}{% if sp.is_eco %} <span class="tag-eco">Eco</span>{% endif %}</h3>
         <p class="meta">{{ _('cat.' + sp.category) }}{% if ss %} · {{ ss.display_name or ss.email }}{% endif %}</p>
-        <p class="price">{{ sp.price | round(2) }} ₽</p>
+        <p class="price">{{ sp.price | round(2) }} ₸</p>
       </div>
     </a>
   {% endfor %}

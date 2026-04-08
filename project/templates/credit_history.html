@@ -26,7 +26,7 @@
       <tr>
         <td>{{ a.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
         <td>{{ a.applicant_name or '—' }}</td>
-        <td>{% if a.requested_amount %}{{ a.requested_amount | int }} ₽{% else %}—{% endif %}</td>
+        <td>{% if a.requested_amount %}{{ a.requested_amount | int }} ₸{% else %}—{% endif %}</td>
         <td>
           {% set rk = a.risk_level or 'medium' %}
           <span class="risk-{{ rk }}">{{ a.risk_level or '—' }}</span>

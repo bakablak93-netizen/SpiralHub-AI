@@ -1147,9 +1147,9 @@ def create_app(test_config: dict | None = None) -> Flask:
             fs = request.form.get("font_scale") or "md"
             if fs not in ("sm", "md", "lg"):
                 fs = "md"
-            cur = request.form.get("currency") or "RUB"
+            cur = request.form.get("currency") or "KZT"
             if cur not in ("KZT", "RUB", "USD", "EUR"):
-                cur = "RUB"
+                cur = "KZT"
             new_prefs = {
                 "theme": theme,
                 "font_scale": fs,
