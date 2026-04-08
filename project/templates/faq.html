@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _('faq.title') }} — AI Craft Hub{% endblock %}
+{% block title %}{{ _('faq.title') }} — SpiralHubAI{% endblock %}
 {% block content %}
 <div class="legal-page">
   <h1 style="margin-top:0;">{{ _('faq.title') }}</h1>
@@ -11,7 +11,7 @@
   </dl>
   <p class="hint">
     {% if current_user %}<a href="{{ url_for('user_settings') }}">{{ _('common.back_settings') }}</a>
-    {% else %}<a href="{{ url_for('index') }}">← AI Craft Hub</a>{% endif %}
+    {% else %}<a href="{{ url_for('index') }}">← SpiralHubAI</a>{% endif %}
   </p>
 </div>
 {% endblock %}

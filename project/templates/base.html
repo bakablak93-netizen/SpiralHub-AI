@@ -19,7 +19,7 @@
   <meta name="theme-color" content="#2d6a4f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>{% block title %}AI Craft Hub{% endblock %}</title>
+  <title>{% block title %}SpiralHubAI{% endblock %}</title>
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   {% block head_extra %}{% endblock %}
@@ -28,7 +28,7 @@
   <div class="nav-overlay" aria-hidden="true"></div>
   <header class="site-header">
     <div class="wrap inner site-header__inner">
-      <a href="{{ url_for('index') }}" class="logo">AI <span>Craft Hub</span></a>
+      <a href="{{ url_for('index') }}" class="logo">SpiralHub<span>AI</span></a>
       <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="{{ _('nav.open_menu') }}">
         <span class="nav-toggle__bar" aria-hidden="true"></span>
         <span class="nav-toggle__bar" aria-hidden="true"></span>
@@ -41,6 +41,7 @@
         <a href="{{ url_for('credit') }}">{{ _('nav.credit') }}</a>
         {% if current_user %}
           <a href="{{ url_for('credit_history') }}">{{ _('nav.credit_history') }}</a>
+          <a href="{{ url_for('purchase_history') }}">{{ _('nav.purchase_history') }}</a>
           <a href="{{ url_for('favorites_products') }}">{{ _('nav.favorites') }}</a>
           <a href="{{ url_for('profile') }}">{{ _('nav.profile') }}</a>
           <a href="{{ url_for('user_settings') }}">{{ _('nav.settings') }}</a>

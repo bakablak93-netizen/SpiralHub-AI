@@ -1,5 +1,5 @@
-/* AI Craft Hub — частичный оффлайн: статика из кэша, страницы — из сети */
-const CACHE_NAME = "craft-hub-static-v1";
+/* SpiralHubAI — частичный оффлайн: статика из кэша, страницы — из сети */
+const CACHE_NAME = "spiralhubai-static-v1";
 const ASSETS = ["/static/style.css", "/static/app.js", "/static/manifest.json"];
 
 self.addEventListener("install", (event) => {

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AI Craft Hub — Flask-приложение (MVP).
+SpiralHubAI — Flask-приложение (MVP).
 Запуск: из папки project → python app.py
 """
 from __future__ import annotations
@@ -1323,7 +1323,7 @@ def create_app(test_config: dict | None = None) -> Flask:
             "sales": 22,
             "experience_months": 14,
             "category": "eco",
-            "desc": "Студия керамики: эко-глазури, продажи на AI Craft Hub и ярмарках, "
+            "desc": "Студия керамики: эко-глазури, продажи на SpiralHubAI и ярмарках, "
             "повторные заказы от частных клиентов.",
         }
         return render_template("credit.html", example=example, categories=CREDIT_CATEGORIES)
@@ -1350,6 +1350,27 @@ def create_app(test_config: dict | None = None) -> Flask:
             .all()
         )
         return render_template("credit_history.html", applications=items)
+
+    @app.route("/purchase_history")
+    @login_required
+    def purchase_history():
+        uid = session["user_id"]
+        orders = (
+            Order.query.filter_by(user_id=uid)
+            .filter(Order.status == "completed")
+            .order_by(Order.created_at.desc())
+            .all()
+        )
+        products_by_id: dict[int, Product] = {}
+        if orders:
+            pids = {o.product_id for o in orders}
+            for p in Product.query.filter(Product.id.in_(pids)).all():
+                products_by_id[p.id] = p
+        return render_template(
+            "purchase_history.html",
+            orders=orders,
+            products_by_id=products_by_id,
+        )
 
     # --- JSON API для форм (генерация описания, eco) ---
 
@@ -1825,7 +1846,7 @@ def create_app(test_config: dict | None = None) -> Flask:
                     status="pending",
                     ai_summary="Демо: средний профиль — заявка на доработку / ручной разбор.",
                     ai_tips_improve="Добавьте подтверждение дохода и план погашения.",
-                    ai_tips_grow="Свяжите заявку с продажами на витрине Craft Hub.",
+                    ai_tips_grow="Свяжите заявку с продажами на витрине SpiralHubAI.",
                 )
 
             db.session.commit()

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ _('purchase_history.title') }}{% endblock %}
+{% block content %}
+
+<h1 style="margin-top:0;">{{ _('purchase_history.heading') }}</h1>
+<p class="hint">{{ _('purchase_history.lead') }}</p>
+
+{% if not orders %}
+<p>{{ _('purchase_history.empty') }} <a href="{{ url_for('catalog') }}">{{ _('purchase_history.to_catalog') }}</a></p>
+{% else %}
+<div class="table-wrap">
+  <table class="data-table purchase-history-table">
+    <thead>
+      <tr>
+        <th>{{ _('purchase_history.th_date') }}</th>
+        <th>{{ _('purchase_history.th_product') }}</th>
+        <th>{{ _('purchase_history.th_qty') }}</th>
+        <th>{{ _('purchase_history.th_total') }}</th>
+        <th>{{ _('purchase_history.th_status') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+      {% set p = products_by_id.get(o.product_id) %}
+      <tr>
+        <td>{{ o.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td>
+          {% if p %}
+          <a href="{{ url_for('product_detail', pid=p.id) }}">{{ p.title }}</a>
+          {% else %}
+          {{ _('purchase_history.product_removed') }}
+          {% endif %}
+        </td>
+        <td>{{ o.quantity }}</td>
+        <td>{{ (o.total_price | float) | round(2) }} ₽</td>
+        <td><span class="order-status-badge order-status-badge--completed">{{ _('purchase_history.st_completed') }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="{{ url_for('profile') }}">{{ _('purchase_history.back_profile') }}</a></p>
+{% endblock %}

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Модели данных для AI Craft Hub (SQLite через SQLAlchemy).
+Модели данных для SpiralHubAI (SQLite через SQLAlchemy).
 Роли: buyer — покупатель, seller — продавец.
 """
 from datetime import datetime

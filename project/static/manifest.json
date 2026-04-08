@@ -1,6 +1,6 @@
 {
-  "name": "AI Craft Hub",
-  "short_name": "CraftHub",
+  "name": "SpiralHubAI",
+  "short_name": "SpiralHubAI",
   "description": "Маркетплейс ремесленников, AI и микрокредиты",
   "start_url": "/",
   "display": "standalone",

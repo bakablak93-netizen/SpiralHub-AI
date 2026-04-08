@@ -7,6 +7,6 @@ build:
   requirementsPath: requirements.txt
   useCache: true
 run:
-  command: gunicorn --chdir project --bind 0.0.0.0:5000 app:app
+  command: gunicorn --bind 0.0.0.0:5000 wsgi:app
   persistenceMount: /data
   containerPort: 5000

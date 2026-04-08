@@ -96,6 +96,7 @@
     <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;">
       <a class="btn btn-primary btn-sm" href="{{ url_for('credit') }}">{{ _('profile.to_credit') }}</a>
       <a class="btn btn-ghost btn-sm" href="{{ url_for('credit_history') }}">{{ _('profile.credit_history') }}</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('purchase_history') }}">{{ _('profile.purchase_history') }}</a>
     </div>
     {% if credits %}
       <h3 class="subsection-title">{{ _('profile.credit_last_apps') }}</h3>
