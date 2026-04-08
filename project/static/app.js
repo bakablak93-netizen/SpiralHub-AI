@@ -9,12 +9,10 @@
     function closeNav() {
       document.body.classList.remove("nav-open");
       toggle.setAttribute("aria-expanded", "false");
-      nav.setAttribute("aria-hidden", "true");
     }
     function openNav() {
       document.body.classList.add("nav-open");
       toggle.setAttribute("aria-expanded", "true");
-      nav.setAttribute("aria-hidden", "false");
     }
     toggle.addEventListener("click", function () {
       if (document.body.classList.contains("nav-open")) closeNav();
@@ -125,7 +123,29 @@
         if (!validateCurrentStep()) return;
         showStep(cur + 1);
       });
-    showStep(0);
+
+    var creditForm = document.getElementById("credit-form");
+    if (window.matchMedia("(min-width: 769px)").matches && steps.length) {
+      steps.forEach(function (s) {
+        s.hidden = false;
+      });
+      if (btnPrev) btnPrev.hidden = true;
+      if (btnNext) btnNext.hidden = true;
+      if (btnSubmit) btnSubmit.hidden = false;
+      if (bar) bar.style.display = "none";
+      if (typeof window.updateCreditSummary === "function") window.updateCreditSummary();
+      if (creditForm) {
+        creditForm.addEventListener(
+          "input",
+          function () {
+            if (typeof window.updateCreditSummary === "function") window.updateCreditSummary();
+          },
+          true
+        );
+      }
+    } else {
+      showStep(0);
+    }
   }
 
 })();

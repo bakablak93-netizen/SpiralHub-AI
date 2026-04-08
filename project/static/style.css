@@ -545,6 +545,13 @@ textarea {
 
 .form-card--credit {
   max-width: 920px;
+  margin-bottom: 5rem;
+}
+
+@media (min-width: 769px) {
+  .form-card--credit {
+    margin-bottom: 1.5rem;
+  }
 }
 
 .credit-form-grid {
@@ -1601,6 +1608,11 @@ body.nav-open .nav-overlay {
   text-decoration: none;
 }
 
+body.page-checkout .fab-chat,
+body.page-credit .fab-chat {
+  display: none;
+}
+
 .fab-chat__icon {
   font-size: 1.25rem;
   line-height: 1;
@@ -1623,8 +1635,22 @@ body.nav-open .nav-overlay {
 /* ——— Полноэкранный чат (мессенджер) ——— */
 body.page-chat {
   overflow: hidden;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body.page-chat main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.chat-page__hint {
+  padding: 0 1rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
 }
 
 body.page-chat .fab-chat {
@@ -1633,14 +1659,6 @@ body.page-chat .fab-chat {
 
 body.page-chat .site-footer {
   display: none;
-}
-
-body.page-chat main {
-  padding: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
 }
 
 body.page-chat main > .wrap {
@@ -2026,6 +2044,11 @@ body.page-chat .chat-form .btn {
 }
 
 /* ——— Микрокредит: wizard ——— */
+.credit-wiz-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
 .credit-wiz-steps {
   margin-bottom: 1rem;
 }
@@ -2097,6 +2120,17 @@ body.page-chat .chat-form .btn {
 @media (max-width: 480px) {
   html {
     font-size: 15px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px;
   }
 
   .wrap {

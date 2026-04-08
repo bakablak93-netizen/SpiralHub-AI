@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}AI Микрокредиты — AI Craft Hub{% endblock %}
+{% block body_class %}page-credit{% endblock %}
 {% block content %}
 
 <section class="credit-hero">
@@ -41,59 +42,108 @@
 
 <div class="form-card form-card--credit">
   <h2 style="margin-top:0;">Заявка</h2>
-  <form method="post" id="credit-form" class="credit-form-grid">
-    <div class="credit-form-col">
-      <label for="applicant_name">Имя заявителя</label>
-      <input type="text" id="applicant_name" name="applicant_name" required maxlength="120"
-        value="{{ request.form.get('applicant_name', '') }}"
-        placeholder="Как к вам обращаться">
+  <p class="hint" style="margin-top:0;">Шаг 1: сумма и срок · Шаг 2: о бизнесе · Шаг 3: проверка и отправка</p>
 
-      <label for="requested_amount">Сумма кредита (₽)</label>
-      <input type="number" id="requested_amount" name="requested_amount" step="1000" min="1000" max="5000000" required
-        value="{{ request.form.get('requested_amount', '') }}">
+  <form method="post" id="credit-form" novalidate>
+    <div id="credit-wizard" class="credit-wiz-steps">
+      <section class="credit-wiz-step" data-step="1">
+        <h3 class="credit-wiz-heading">Сумма и срок</h3>
+        <label for="credit_amount_range">Сумма кредита (ползунок)</label>
+        <div class="credit-range-wrap">
+          <input type="range" id="credit_amount_range" min="10000" max="500000" step="5000" value="100000" aria-label="Сумма кредита">
+          <label for="requested_amount">Точная сумма (₽)</label>
+          <input type="number" id="requested_amount" name="requested_amount" step="1000" min="1000" max="5000000" required
+            value="{{ request.form.get('requested_amount', '') }}">
+        </div>
+        <label for="loan_term_months">Желаемый срок возврата (месяцев, для ориентира)</label>
+        <input type="range" id="loan_term_months" min="3" max="36" step="1" value="12" aria-valuemin="3" aria-valuemax="36" aria-label="Срок в месяцах">
+        <p class="hint" style="margin:0;">Срок: <strong id="loan_term_out">12</strong> мес. (не сохраняется в заявке, только для планирования)</p>
+      </section>
 
-      <label for="monthly_income">Ежемесячный доход (₽)</label>
-      <input type="number" id="monthly_income" name="monthly_income" step="500" min="0" required
-        value="{{ request.form.get('monthly_income', '') }}">
+      <section class="credit-wiz-step" data-step="2" hidden>
+        <h3 class="credit-wiz-heading">О вас и бизнесе</h3>
+        <label for="applicant_name">Имя заявителя</label>
+        <input type="text" id="applicant_name" name="applicant_name" required maxlength="120"
+          value="{{ request.form.get('applicant_name', '') }}"
+          placeholder="Как к вам обращаться">
 
-      <label for="sales_count_30d">Количество продаж (за 30 дней)</label>
-      <input type="number" id="sales_count_30d" name="sales_count_30d" step="1" min="0" required
-        value="{{ request.form.get('sales_count_30d', '') }}">
+        <label for="monthly_income">Ежемесячный доход (₽)</label>
+        <input type="number" id="monthly_income" name="monthly_income" step="500" min="0" required
+          value="{{ request.form.get('monthly_income', '') }}">
+
+        <label for="sales_count_30d">Количество продаж (за 30 дней)</label>
+        <input type="number" id="sales_count_30d" name="sales_count_30d" step="1" min="0" required
+          value="{{ request.form.get('sales_count_30d', '') }}">
+
+        <label for="experience_months">Стаж бизнеса (месяцев)</label>
+        <input type="number" id="experience_months" name="experience_months" step="1" min="0" max="600" required
+          value="{{ request.form.get('experience_months', '') }}">
+
+        <label for="business_category">Категория бизнеса</label>
+        <select id="business_category" name="business_category" required>
+          {% for c in categories %}
+            <option value="{{ c }}" {% if request.form.get('business_category', 'handmade') == c %}selected{% endif %}>
+              {% if c == 'eco' %}Эко / устойчивое{% elif c == 'handmade' %}Handmade{% elif c == 'agro' %}Агро{% else %}Bio{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+
+        <label for="business_description">Описание бизнеса</label>
+        <textarea id="business_description" name="business_description" required minlength="15" rows="5"
+          placeholder="Ниша, каналы продаж, планы, eco-практики…">{{ request.form.get('business_description', '') }}</textarea>
+
+        {% if example %}
+        <button type="button" class="btn btn-ghost btn-sm" id="fill-example">Заполнить примером</button>
+        {% endif %}
+      </section>
+
+      <section class="credit-wiz-step" data-step="3" hidden>
+        <h3 class="credit-wiz-heading">Подтверждение</h3>
+        <p class="hint" style="margin-top:0;">Проверьте данные и нажмите «Подать заявку».</p>
+        <div class="credit-wiz-summary" id="credit-summary-box" aria-live="polite"></div>
+      </section>
     </div>
-    <div class="credit-form-col">
-      <label for="experience_months">Стаж бизнеса (месяцев)</label>
-      <input type="number" id="experience_months" name="experience_months" step="1" min="0" max="600" required
-        value="{{ request.form.get('experience_months', '') }}">
 
-      <label for="business_category">Категория бизнеса</label>
-      <select id="business_category" name="business_category" required>
-        {% for c in categories %}
-          <option value="{{ c }}" {% if request.form.get('business_category', 'handmade') == c %}selected{% endif %}>
-            {% if c == 'eco' %}Эко / устойчивое{% elif c == 'handmade' %}Handmade{% elif c == 'agro' %}Агро{% else %}Bio{% endif %}
-          </option>
-        {% endfor %}
-      </select>
-
-      <label for="business_description">Описание бизнеса</label>
-      <textarea id="business_description" name="business_description" required minlength="15" rows="5"
-        placeholder="Ниша, каналы продаж, планы, eco-практики…">{{ request.form.get('business_description', '') }}</textarea>
-
-      {% if example %}
-      <button type="button" class="btn btn-ghost btn-sm" id="fill-example">Заполнить примером</button>
-      {% endif %}
-
-      <button type="submit" class="btn btn-primary credit-submit">Подать заявку</button>
+    <div class="credit-wiz-bar">
+      <button type="button" class="btn btn-ghost credit-wiz-prev" hidden>Назад</button>
+      <button type="button" class="btn btn-primary credit-wiz-next">Далее</button>
+      <button type="submit" class="btn btn-primary credit-wiz-submit" hidden>Подать заявку</button>
     </div>
   </form>
 </div>
 
 <p class="hint"><a href="{{ url_for('index') }}">← На главную</a></p>
 
+<script>
+window.updateCreditSummary = function () {
+  var box = document.getElementById('credit-summary-box');
+  if (!box) return;
+  function v(id) {
+    var el = document.getElementById(id);
+    return el ? (el.value || '').trim() : '';
+  }
+  var cat = document.getElementById('business_category');
+  var catLabel = cat && cat.options[cat.selectedIndex] ? cat.options[cat.selectedIndex].text : '';
+  var months = document.getElementById('loan_term_out');
+  box.innerHTML =
+    '<p><strong>Сумма:</strong> ' + (v('requested_amount') || '—') + ' ₽</p>' +
+    '<p><strong>Срок (ориентир):</strong> ' + (months ? months.textContent : '—') + ' мес.</p>' +
+    '<p><strong>Имя:</strong> ' + (v('applicant_name') || '—') + '</p>' +
+    '<p><strong>Доход / мес.:</strong> ' + (v('monthly_income') || '—') + ' ₽</p>' +
+    '<p><strong>Продаж (30 дн.):</strong> ' + (v('sales_count_30d') || '—') + '</p>' +
+    '<p><strong>Стаж:</strong> ' + (v('experience_months') || '—') + ' мес.</p>' +
+    '<p><strong>Категория:</strong> ' + catLabel + '</p>' +
+    '<p><strong>Описание:</strong> ' + (v('business_description').slice(0, 200) || '—') + (v('business_description').length > 200 ? '…' : '') + '</p>';
+};
+</script>
+
 {% if example %}
 <script>
 (function() {
   var ex = {{ example | tojson }};
-  document.getElementById('fill-example').addEventListener('click', function() {
+  var btn = document.getElementById('fill-example');
+  if (!btn) return;
+  btn.addEventListener('click', function() {
     document.getElementById('applicant_name').value = ex.name;
     document.getElementById('requested_amount').value = Math.round(Number(ex.amount));
     document.getElementById('monthly_income').value = Math.round(Number(ex.income));
@@ -101,6 +151,11 @@
     document.getElementById('experience_months').value = ex.experience_months;
     document.getElementById('business_category').value = ex.category;
     document.getElementById('business_description').value = ex.desc;
+    var r = document.getElementById('credit_amount_range');
+    if (r) {
+      r.value = Math.min(parseInt(r.max, 10), Math.max(parseInt(r.min, 10), Math.round(Number(ex.amount))));
+      r.dispatchEvent(new Event('input'));
+    }
   });
 })();
 </script>

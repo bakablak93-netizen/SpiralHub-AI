@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from '_macros.html' import product_image %}
 {% block title %}Оформление — {{ product.title }}{% endblock %}
+{% block body_class %}page-checkout{% endblock %}
 {% block content %}
 <h1 style="margin-top:0;">Оформление заказа</h1>
 
@@ -59,6 +60,10 @@
       <button type="submit" class="btn btn-primary">Оформить заказ</button>
     </form>
   </section>
+</div>
+
+<div class="checkout-sticky-pay">
+  <button type="submit" form="checkout-form" class="btn btn-primary">Оформить заказ</button>
 </div>
 
 <p class="hint"><a href="{{ url_for('product_detail', pid=product.id) }}">← Назад к товару</a></p>

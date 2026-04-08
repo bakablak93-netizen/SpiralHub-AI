@@ -47,6 +47,11 @@
   {% endif %}
 </section>
 
+<button type="button" class="sellers-filters-toggle" aria-expanded="false" aria-controls="sellers-filters-panel">
+  <span class="storefront-filters-toggle__icon" aria-hidden="true"></span>
+  Фильтры и поиск
+</button>
+<div id="sellers-filters-panel" class="sellers-filters-panel">
 <form method="get" action="{{ url_for('sellers_list') }}" class="sellers-filters card-panel">
   {% if ai_mode %}<input type="hidden" name="ai" value="1">{% endif %}
   <h2 class="panel-title">Поиск и фильтры</h2>
@@ -95,6 +100,7 @@
     <a href="{{ url_for('sellers_list') }}" class="btn btn-ghost btn-sm">Сбросить</a>
   </div>
 </form>
+</div>
 
 <p class="hint sellers-count-line">Найдено мастерских: <strong>{{ seller_cards|length }}</strong></p>
 
