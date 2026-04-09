@@ -5,14 +5,44 @@
   var toggle = document.querySelector(".nav-toggle");
   var nav = document.getElementById("main-nav");
   var overlay = document.querySelector(".nav-overlay");
+  var mqNav = window.matchMedia("(max-width: 768px)");
+  var savedScrollY = 0;
+  var scrollLocked = false;
+
+  function lockScroll() {
+    if (!mqNav.matches) return;
+    savedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.position = "fixed";
+    document.body.style.top = "-" + savedScrollY + "px";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    scrollLocked = true;
+  }
+
+  function unlockScroll() {
+    if (!scrollLocked) return;
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+    window.scrollTo(0, savedScrollY);
+    scrollLocked = false;
+  }
+
   if (toggle && nav) {
     function closeNav() {
+      unlockScroll();
       document.body.classList.remove("nav-open");
+      document.documentElement.classList.remove("nav-open");
       toggle.setAttribute("aria-expanded", "false");
     }
     function openNav() {
       document.body.classList.add("nav-open");
+      document.documentElement.classList.add("nav-open");
       toggle.setAttribute("aria-expanded", "true");
+      lockScroll();
     }
     toggle.addEventListener("click", function () {
       if (document.body.classList.contains("nav-open")) closeNav();
@@ -21,8 +51,13 @@
     if (overlay) overlay.addEventListener("click", closeNav);
     nav.querySelectorAll("a").forEach(function (a) {
       a.addEventListener("click", function () {
-        if (window.matchMedia("(max-width: 768px)").matches) closeNav();
+        if (mqNav.matches) closeNav();
       });
+    });
+    window.addEventListener("resize", function () {
+      if (!mqNav.matches && document.body.classList.contains("nav-open")) {
+        closeNav();
+      }
     });
   }
 

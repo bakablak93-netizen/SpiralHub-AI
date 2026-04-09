@@ -117,6 +117,32 @@ a:hover {
   color: var(--accent);
 }
 
+.nav--main a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-link__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.nav-link__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.nav-link__text {
+  flex: 1;
+  min-width: 0;
+}
+
 .badge-demo {
   font-size: 0.72rem;
   background: #fef3c7;
@@ -1618,6 +1644,12 @@ body.nav-open .site-header {
   z-index: 150;
 }
 
+/* Блокировка прокрутки страницы при открытом выезжающем меню (моб.) */
+html.nav-open,
+body.nav-open {
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .nav-toggle {
     display: flex;
@@ -1647,13 +1679,18 @@ body.nav-open .site-header {
     transform: translateX(0);
   }
 
+  .nav--main .nav-link__icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
   .nav--main a {
     padding: 0.65rem 1.1rem;
     border-radius: var(--radius-btn);
     min-height: var(--tap-min);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     font-size: 1rem;
     font-weight: 600;
     font-family: inherit;
@@ -1743,6 +1780,8 @@ body.page-chat {
   overflow: hidden;
   min-height: 100vh;
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 body.page-chat main {
@@ -1772,9 +1811,9 @@ body.page-chat main > .wrap {
   max-width: none;
   padding: 0;
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 
 body.page-chat .chat-page {
@@ -1782,7 +1821,7 @@ body.page-chat .chat-page {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 0 0 calc(72px + var(--safe-bottom));
+  padding: 0;
 }
 
 body.page-chat .chat-page__head {
@@ -1801,6 +1840,16 @@ body.page-chat .chat-page__head h1 {
   font-size: 1.05rem;
 }
 
+/* Кнопка «×» вместо длинной подписи */
+body.page-chat .chat-page__close {
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0 0.65rem;
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
 body.page-chat .chat-box {
   flex: 1;
   min-height: 0;
@@ -1808,17 +1857,19 @@ body.page-chat .chat-box {
   border-radius: 0;
   border: none;
   margin: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
+/* Панель ввода в потоке (не position:fixed) — на iOS fixed+overflow:hidden на body обрезает нижнюю панель */
 body.page-chat .chat-page__composer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 5;
   padding: 0.5rem 0.75rem calc(0.5rem + var(--safe-bottom));
   background: var(--surface);
   border-top: var(--border-ui);
-  z-index: 50;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
 }
 
 body.page-chat .chat-form {
@@ -1829,6 +1880,7 @@ body.page-chat .chat-form input[type="text"] {
   min-height: var(--tap-min);
   border-radius: var(--radius-btn);
   margin: 0;
+  font-size: 16px; /* предотвращает авто-зум iOS при фокусе на input с мелким шрифтом */
 }
 
 body.page-chat .chat-form .btn {

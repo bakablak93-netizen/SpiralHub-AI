@@ -5,7 +5,7 @@
 <div class="chat-page">
   <div class="chat-page__head">
     <h1>{{ _('chat.heading') }}</h1>
-    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">{{ _('chat.close') }}</a>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm chat-page__close" aria-label="{{ _('chat.close') }}"><span aria-hidden="true">×</span></a>
   </div>
   <p class="hint chat-page__hint">
     {{ _('chat.lead') }}

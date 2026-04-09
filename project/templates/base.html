@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from '_macros.html' import nav_icon %}
 <html lang="{{ locale }}" data-theme="{{ user_prefs.theme }}" data-font="{{ user_prefs.font_scale }}">
 <head>
   <meta charset="UTF-8">
@@ -35,23 +36,23 @@
         <span class="nav-toggle__bar" aria-hidden="true"></span>
       </button>
       <nav id="main-nav" class="nav nav--main" aria-label="{{ _('nav.main_nav') }}">
-        <a href="{{ url_for('catalog') }}">{{ _('nav.catalog') }}</a>
-        <a href="{{ url_for('sellers_list') }}">{{ _('nav.sellers') }}</a>
-        <a href="{{ url_for('chat') }}">{{ _('nav.chat') }}</a>
-        <a href="{{ url_for('credit') }}">{{ _('nav.credit') }}</a>
+        <a href="{{ url_for('catalog') }}">{{ nav_icon('catalog') }}<span class="nav-link__text">{{ _('nav.catalog') }}</span></a>
+        <a href="{{ url_for('sellers_list') }}">{{ nav_icon('sellers') }}<span class="nav-link__text">{{ _('nav.sellers') }}</span></a>
+        <a href="{{ url_for('chat') }}">{{ nav_icon('chat') }}<span class="nav-link__text">{{ _('nav.chat') }}</span></a>
+        <a href="{{ url_for('credit') }}">{{ nav_icon('credit') }}<span class="nav-link__text">{{ _('nav.credit') }}</span></a>
         {% if current_user %}
-          <a href="{{ url_for('credit_history') }}">{{ _('nav.credit_history') }}</a>
-          <a href="{{ url_for('purchase_history') }}">{{ _('nav.purchase_history') }}</a>
-          <a href="{{ url_for('favorites_products') }}">{{ _('nav.favorites') }}</a>
-          <a href="{{ url_for('profile') }}">{{ _('nav.profile') }}</a>
-          <a href="{{ url_for('user_settings') }}">{{ _('nav.settings') }}</a>
+          <a href="{{ url_for('credit_history') }}">{{ nav_icon('credit_history') }}<span class="nav-link__text">{{ _('nav.credit_history') }}</span></a>
+          <a href="{{ url_for('purchase_history') }}">{{ nav_icon('purchase_history') }}<span class="nav-link__text">{{ _('nav.purchase_history') }}</span></a>
+          <a href="{{ url_for('favorites_products') }}">{{ nav_icon('favorites') }}<span class="nav-link__text">{{ _('nav.favorites') }}</span></a>
+          <a href="{{ url_for('profile') }}">{{ nav_icon('profile') }}<span class="nav-link__text">{{ _('nav.profile') }}</span></a>
+          <a href="{{ url_for('user_settings') }}">{{ nav_icon('settings') }}<span class="nav-link__text">{{ _('nav.settings') }}</span></a>
           {% if current_user.role == 'seller' %}
-            <a href="{{ url_for('add_product') }}">{{ _('nav.new_product') }}</a>
+            <a href="{{ url_for('add_product') }}">{{ nav_icon('new_product') }}<span class="nav-link__text">{{ _('nav.new_product') }}</span></a>
           {% endif %}
-          <a href="{{ url_for('logout') }}">{{ _('nav.logout') }}</a>
+          <a href="{{ url_for('logout') }}">{{ nav_icon('logout') }}<span class="nav-link__text">{{ _('nav.logout') }}</span></a>
         {% else %}
-          <a href="{{ url_for('login') }}">{{ _('nav.login') }}</a>
-          <a href="{{ url_for('register') }}">{{ _('nav.register') }}</a>
+          <a href="{{ url_for('login') }}">{{ nav_icon('login') }}<span class="nav-link__text">{{ _('nav.login') }}</span></a>
+          <a href="{{ url_for('register') }}">{{ nav_icon('register') }}<span class="nav-link__text">{{ _('nav.register') }}</span></a>
         {% endif %}
         {% if demo_mode %}
           <span class="badge-demo" title="{{ _('demo.badge_title') }}">{{ _('demo.badge') }}</span>
